@@ -1,39 +1,22 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import SignInForm from "../SignInForm/SignInForm";
-import ImageCarousel from "../Utils/ImageCarousel"; // Import carousel
 import Logo from "../../assets/logo.svg";
 
 const LandingPage = ({ setIsAuthenticated }) => {
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
-
-  useEffect(() => {
-    const handleResize = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
-
   return (
-    <div className="flex h-screen w-screen bg-[#DED1BE] overflow-hidden flex-col md:flex-row">
-      {/* Left Side - Login Form */}
-      <div className="w-full md:w-1/2 flex flex-col items-center justify-center bg-white p-10 rounded-lg shadow-lg">
-        <h1 className="text-3xl font-bold mb-6">Welcome to PowerCasting App</h1>
+    <div className="flex h-screen w-screen bg-white overflow-hidden flex-col justify-center items-center">
+      {/* Centered Login Form */}
+      <div className="bg-white p-10 rounded-lg shadow-lg border w-[450px] text-center">
+        <h1 className="text-2xl font-bold mb-4">
+          Welcome to SM Service Portal
+        </h1>
 
-        {/* Logo */}
-        <img src={Logo} alt="PowerCasting Logo" className="mb-6 w-48 h-auto" />
+        {/* Centered Logo */}
+        <img src={Logo} alt="SM Logo" className="mb-4 w-32 h-auto mx-auto" />
 
         {/* Sign-In Form */}
         <SignInForm setIsAuthenticated={setIsAuthenticated} />
       </div>
-
-      {/* Right Side - Conditionally Render Image Carousel */}
-      {!isMobile && (
-        <div className="w-1/2 flex items-center justify-center overflow-hidden">
-          <ImageCarousel />
-        </div>
-      )}
     </div>
   );
 };
