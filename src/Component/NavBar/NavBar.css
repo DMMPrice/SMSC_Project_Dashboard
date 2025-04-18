@@ -22,3 +22,40 @@
     transform: translateY(0);
   }
 }
+
+/* Additional styling for the greeting */
+/* In NavBar.css */
+
+/* Slide-in animation for the greeting */
+.greeting {
+  display: flex;
+  align-items: center;
+  font-size: 1.25rem;
+  animation: dropInFromTop 0.6s ease-out;
+}
+
+.greeting span {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #2563eb; /* Tailwind Blue-600 */
+  margin-left: 10px;
+}
+
+.greeting .text-yellow-500 {
+  font-size: 1.5rem;
+}
+
+/* Drop-in animation keyframe */
+@keyframes dropInFromTop {
+  0% {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+
+

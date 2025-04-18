@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button.tsx";
 import InputField from "../Utils/InputField";
 
 const SignInForm = ({ setIsAuthenticated }) => {
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState("");         // ✅ using email
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -18,22 +18,26 @@ const SignInForm = ({ setIsAuthenticated }) => {
     try {
       const response = await fetch("http://127.0.0.1:5000/auth/login", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email, password }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),  // ✅ sending email
       });
 
       const data = await response.json();
 
       if (response.ok) {
+        // ✅ store user data
+        localStorage.setItem("userRole", data.role);
+        localStorage.setItem("userId", data.user_id);
+        localStorage.setItem("employeeId", data.employee_id);
+        localStorage.setItem("userName", data.full_name);
+
         setIsAuthenticated(true);
         navigate("/menu");
       } else {
-        setError(data.message || "Invalid email or password");
+        setError(data.message || "Invalid credentials");
         setIsAuthenticated(false);
       }
-    } catch (error) {
+    } catch (err) {
       setError("Something went wrong. Please try again.");
     } finally {
       setLoading(false);
@@ -50,19 +54,20 @@ const SignInForm = ({ setIsAuthenticated }) => {
 
         <InputField
           label="Email"
-          type="text"
+          type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="w-full"
         />
+
         <InputField
           label="Password"
           type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="w-full"
         />
+
         {error && <p className="text-red-500 text-sm text-center">{error}</p>}
+
         <Button
           type="submit"
           className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded w-full"

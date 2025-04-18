@@ -1,0 +1,49 @@
+.flip360-container {
+    display: inline-block;
+    transition: transform 1s ease-in-out;
+  }
+  
+  .flip360-container.loaded {
+    transform: rotateY(360deg);
+  }
+  
+  .flip360-container.flip {
+    transform: rotateY(360deg);
+  }
+  
+  .profile-view-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+  }
+  
+  .profile-content-grid {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    gap: 2rem;
+    padding-top: 1rem;
+  }
+  
+  .profile-column {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  
+  .profile-divider {
+    width: 1px;
+    background-color: #d1d5db;
+  }
+  
+  /* ✅ New CSS for right-bottom alignment of edit button */
+  .edit-button-container {
+    display: flex;
+    justify-content: flex-end;
+    width: 100%;
+    /* margin-top: auto; */
+    /* margin-top: 2rem; */
+  }
+  
