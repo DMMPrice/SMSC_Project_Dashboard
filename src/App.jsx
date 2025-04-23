@@ -21,6 +21,7 @@ import WorkEntryTable from "./Component/WorkEntryTable/WorkEntryTable";
 import EmployeeListTable from "./Component/EmployeeListTable/EmployeeListTable";
 import IndividualWorkEntryTable from "./Component/IndividualworkEntryTable/IndividualworkEntryTable";
 import ManualAttendanceTable from "./Component/ManualAttendanceTable/ManualAttendanceTable";
+import ComingSoon from "@/Component/Utils/ComingSoon.jsx";
 
 
 const PrivateRoute = ({element, isAuthenticated}) => {
@@ -71,7 +72,10 @@ function App() {
                                                                               isAuthenticated={isAuthenticated}/>}/>
                 <Route path="/attendance"
                        element={<PrivateRoute element={<ManualAttendanceTable/>} isAuthenticated={isAuthenticated}/>}/>
-
+                <Route
+                    path="/dev"
+                    element={<PrivateRoute element={<ComingSoon/>} isAuthenticated={isAuthenticated}/>}
+                />
 
                 <Route path="*" element={<Error404/>}/>
             </Routes>

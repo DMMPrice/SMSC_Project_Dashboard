@@ -95,19 +95,19 @@ const menuItems = [
         submenu: [
             {
                 title: "View All Projects",
-                path: "/plants",
+                path: "/dev",
                 icon: <BsTextParagraph className="h-6 w-6 text-red-600"/>,
                 allowedRoles: ["Admin", "Manager", "Super Admin"],
             },
             {
                 title: "Ongoing Projects",
-                path: "/banking",
+                path: "/dev",
                 icon: <GoGraph className="h-6 w-6 text-red-600"/>,
                 allowedRoles: ["Manager", "Admin"],
             },
             {
                 title: "Completed Projects",
-                path: "/generation-plants",
+                path: "/dev",
                 icon: <MdIncompleteCircle className="h-6 w-6 text-red-600"/>,
                 allowedRoles: ["Admin"],
             },
