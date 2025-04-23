@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import './EmployeeProfile.css';
 import { useParams } from 'react-router-dom';
+import {API_URL} from "@/config.js";
 
 const EmployeeProfile = () => {
   const { employee_id } = useParams();
@@ -19,7 +20,7 @@ const EmployeeProfile = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await axios.get(`http://127.0.0.1:5000/employees/profile/id/${employee_id}`);
+        const res = await axios.get(`${API_URL}employees/profile/id/${employee_id}`);
         const data = res.data;
         setEmployee(data);
         setForm(data);
