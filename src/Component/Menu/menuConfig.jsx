@@ -27,13 +27,13 @@ const menuItems = [
         submenu: [
             {
                 title: "View Profile",
-                path: `/admin/employees/${localStorage.getItem("employeeId")}`,
+                path: `/employees/profile`,
                 icon: <CgProfile className="h-6 w-6 text-blue-600"/>,
                 allowedRoles: ["Admin", "Manager", "Employee", "Super Admin"],
             },
             {
                 title: "All Employees",
-                path: "/admin/employees",
+                path: "/employees/all",
                 icon: <IoPeopleSharp className="h-6 w-6 text-blue-600"/>,
                 allowedRoles: ["Admin", "Manager", "Super Admin"],
             },

@@ -1,6 +1,6 @@
 import React, {useState, useEffect} from "react";
 import {useNavigate} from "react-router-dom";
-import menuItems from "@/config/menuConfig.jsx"
+import menuItems from "@/Component/Menu/menuConfig.jsx"
 
 const Menu = () => {
     const [role, setRole] = useState("Employee");

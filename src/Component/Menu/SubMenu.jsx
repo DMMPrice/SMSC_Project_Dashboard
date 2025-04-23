@@ -1,6 +1,6 @@
 import React from "react";
 import {useNavigate, useParams} from "react-router-dom";
-import menuItems from "@/config/menuConfig.jsx";
+import menuItems from "@/Component/Menu/menuConfig.jsx";
 
 const SubMenu = () => {
     const navigate = useNavigate();

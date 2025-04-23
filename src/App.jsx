@@ -22,6 +22,7 @@ import EmployeeListTable from "./Component/EmployeeListTable/EmployeeListTable";
 import IndividualWorkEntryTable from "./Component/IndividualworkEntryTable/IndividualworkEntryTable";
 import ManualAttendanceTable from "./Component/ManualAttendanceTable/ManualAttendanceTable";
 import ComingSoon from "@/Component/Utils/ComingSoon.jsx";
+import {ToastContainer} from "react-toastify";
 
 
 const PrivateRoute = ({element, isAuthenticated}) => {
@@ -39,49 +40,53 @@ function App() {
     }, [isAuthenticated]);
 
     return (
-        <Router>
-            {isAuthenticated && <NavBar setIsAuthenticated={setIsAuthenticated}/>}
+        <>
+            <Router>
+                {isAuthenticated && <NavBar setIsAuthenticated={setIsAuthenticated}/>}
 
-            <Routes>
-                <Route
-                    path="/"
-                    element={isAuthenticated ? <Navigate to="/menu"/> :
-                        <LandingPage setIsAuthenticated={setIsAuthenticated}/>}
-                />
-                <Route
-                    path="/signin"
-                    element={isAuthenticated ? <Navigate to="/menu"/> :
-                        <LandingPage setIsAuthenticated={setIsAuthenticated}/>}
-                />
+                <Routes>
+                    <Route
+                        path="/"
+                        element={isAuthenticated ? <Navigate to="/menu"/> :
+                            <LandingPage setIsAuthenticated={setIsAuthenticated}/>}
+                    />
+                    <Route
+                        path="/signin"
+                        element={isAuthenticated ? <Navigate to="/menu"/> :
+                            <LandingPage setIsAuthenticated={setIsAuthenticated}/>}
+                    />
 
-                <Route path="/add-employee"
-                       element={<PrivateRoute element={<AddEmployeeForm/>} isAuthenticated={isAuthenticated}/>}/>
-                <Route path="/menu" element={<PrivateRoute element={<Menu/>} isAuthenticated={isAuthenticated}/>}/>
-                <Route path="/menu/:menuKey"
-                       element={<PrivateRoute element={<SubMenu/>} isAuthenticated={isAuthenticated}/>}/>
-                <Route path="/admin/employees/:employee_id" element={<EmployeeProfile/>}/>
+                    <Route path="/add-employee"
+                           element={<PrivateRoute element={<AddEmployeeForm/>} isAuthenticated={isAuthenticated}/>}/>
+                    <Route path="/menu" element={<PrivateRoute element={<Menu/>} isAuthenticated={isAuthenticated}/>}/>
+                    <Route path="/menu/:menuKey"
+                           element={<PrivateRoute element={<SubMenu/>} isAuthenticated={isAuthenticated}/>}/>
+                    <Route path="/employees/profile" element={<EmployeeProfile/>} isAuthenticated={isAuthenticated}/>
 
-                <Route path="/admin/employees"
-                       element={<PrivateRoute element={<EmployeeListTable/>} isAuthenticated={isAuthenticated}/>}/>
+                    <Route path="/employees/all"
+                           element={<PrivateRoute element={<EmployeeListTable/>} isAuthenticated={isAuthenticated}/>}/>
 
-                <Route path="/work-entry"
-                       element={<PrivateRoute element={<WorkEntryForm/>} isAuthenticated={isAuthenticated}/>}/>
-                <Route path="/work-entries"
-                       element={<PrivateRoute element={<WorkEntryTable/>} isAuthenticated={isAuthenticated}/>}/>
-                <Route path="/work-entry/:employee_id" element={<PrivateRoute element={<IndividualWorkEntryTable/>}
-                                                                              isAuthenticated={isAuthenticated}/>}/>
-                <Route path="/attendance"
-                       element={<PrivateRoute element={<ManualAttendanceTable/>} isAuthenticated={isAuthenticated}/>}/>
-                <Route
-                    path="/dev"
-                    element={<PrivateRoute element={<ComingSoon/>} isAuthenticated={isAuthenticated}/>}
-                />
+                    <Route path="/work-entry"
+                           element={<PrivateRoute element={<WorkEntryForm/>} isAuthenticated={isAuthenticated}/>}/>
+                    <Route path="/work-entries"
+                           element={<PrivateRoute element={<WorkEntryTable/>} isAuthenticated={isAuthenticated}/>}/>
+                    <Route path="/work-entry/:employee_id" element={<PrivateRoute element={<IndividualWorkEntryTable/>}
+                                                                                  isAuthenticated={isAuthenticated}/>}/>
+                    <Route path="/attendance"
+                           element={<PrivateRoute element={<ManualAttendanceTable/>}
+                                                  isAuthenticated={isAuthenticated}/>}/>
+                    <Route
+                        path="/dev"
+                        element={<PrivateRoute element={<ComingSoon/>} isAuthenticated={isAuthenticated}/>}
+                    />
 
-                <Route path="*" element={<Error404/>}/>
-            </Routes>
+                    <Route path="*" element={<Error404/>}/>
+                </Routes>
 
-            <Footer/>
-        </Router>
+                <Footer/>
+            </Router>
+            <ToastContainer position="top-right" autoClose={3000}/>
+        </>
     );
 }
 
