@@ -37,14 +37,6 @@ const menuItems = [
                 icon: <IoPeopleSharp className="h-6 w-6 text-blue-600"/>,
                 allowedRoles: ["Admin", "Manager", "Super Admin"],
             },
-        ],
-    },
-    {
-        key: "user",
-        title: "Create Member",
-        icon: <FaUserEdit className="h-10 w-10 text-yellow-600"/>,
-        allowedRoles: ["Admin", "Manager", "Super Admin"],
-        submenu: [
             {
                 title: "Add New Member",
                 path: "/add-employee",
@@ -61,13 +53,13 @@ const menuItems = [
         submenu: [
             {
                 title: "Submit Entry",
-                path: `/work-entry/${localStorage.getItem("employeeId")}`,
+                path: `/work-entry`,
                 icon: <MdFormatListBulletedAdd className="h-6 w-6 text-indigo-600"/>,
                 allowedRoles: ["Admin", "Manager", "Employee", "Super Admin"],
             },
             {
                 title: "View All Entries",
-                path: "/work-entries",
+                path: "/work-entries-employee",
                 icon: <MdOutlineViewAgenda className="h-6 w-6 text-indigo-600"/>,
                 allowedRoles: ["Admin", "Manager", "Super Admin"],
             },
