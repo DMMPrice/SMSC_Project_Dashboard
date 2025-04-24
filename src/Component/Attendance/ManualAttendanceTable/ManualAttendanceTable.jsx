@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { format } from "date-fns";
-import { API_URL } from "../../config";
+import { API_URL } from "../../../config.js";
 
 const ManualAttendanceTable = () => {
   const [rows, setRows] = useState([]);
