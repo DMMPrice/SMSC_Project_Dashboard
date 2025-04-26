@@ -69,13 +69,13 @@ const menuItems = [
         key: "attendance",
         title: "Attendance",
         icon: <MdOutlineSpellcheck className="h-10 w-10 text-green-600"/>,
-        allowedRoles: ["Admin", "Attendance Team", "Manager", "Super Admin"],
+        allowedRoles: ["Admin", "Attendance Team", "Manager", "Super Admin", "Employee"],
         submenu: [
             {
                 title: "Fill Attendance",
                 path: "/attendance",
                 icon: <MdPresentToAll className="h-6 w-6 text-green-600"/>,
-                allowedRoles: ["Admin", "Attendance Team", "Manager", "Super Admin"],
+                allowedRoles: ["Admin", "Attendance Team", "Manager", "Super Admin", "Employee"],
             },
         ],
     },
