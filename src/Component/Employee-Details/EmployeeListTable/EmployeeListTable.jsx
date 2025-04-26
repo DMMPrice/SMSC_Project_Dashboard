@@ -76,40 +76,6 @@ const EmployeeListTable = () => {
     return (
         <div className="p-6">
             <h2 className="text-xl font-bold mb-4">All Employees</h2>
-
-            <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
-                <div className="flex items-center gap-2 flex-wrap">
-                    <div className="relative">
-                        <FaSearch className="absolute left-3 top-3 text-gray-400"/>
-                        <input
-                            type="text"
-                            placeholder="Search by ID or Name"
-                            value={search}
-                            onChange={e => setSearch(e.target.value)}
-                            onKeyDown={e => e.key === 'Enter' && fetchEmployees()}
-                            className="border pl-10 pr-4 py-2 rounded w-64"
-                        />
-                    </div>
-                    <button onClick={fetchEmployees} className="bg-blue-600 text-white px-4 py-2 rounded">
-                        Search
-                    </button>
-                    <button onClick={toggleSort} className="bg-gray-300 px-4 py-2 rounded">
-                        Sort: {sortAsc ? '↑ A-Z' : '↓ Z-A'}
-                    </button>
-                </div>
-
-                {employees.length > 0 && (
-                    <CSVLink
-                        data={employees}
-                        headers={csvHeaders}
-                        filename="employees_list.csv"
-                        className="bg-green-600 text-white px-4 py-2 rounded flex items-center gap-2"
-                    >
-                        <FaDownload/> Download CSV
-                    </CSVLink>
-                )}
-            </div>
-
             {loading ? (
                 <div className="flex justify-center items-center min-h-[50vh]">
                     <div className="animate-spin rounded-full h-10 w-10 border-t-4 border-blue-500"/>

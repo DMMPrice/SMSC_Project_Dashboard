@@ -169,7 +169,7 @@ export default function ManualAttendanceTable() {
     return (
         <div className="p-6">
             {/* + Add Attendance only for Admin / Super Admin */}
-            {(userRole === "Admin" || userRole === "Super Admin") && (
+            {(userRole === "Admin" || userRole === "Super Admin" || userRole === "Attendance Team") && (
                 <div className="flex justify-end mb-4">
                     <button
                         onClick={() => setAddModalOpen(true)}
