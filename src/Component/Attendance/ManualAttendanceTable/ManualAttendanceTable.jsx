@@ -35,7 +35,7 @@ export default function ManualAttendanceTable() {
         const stored = localStorage.getItem("userData");
         const {role, employee_id} = stored ? JSON.parse(stored) : {};
         const endpoint =
-            role === "Admin" || role === "Super Admin"
+            role === "Admin" || role === "Super Admin" || role === "Attendance Team"
                 ? `${API_URL}attendance/all`
                 : `${API_URL}attendance/employee/${employee_id}`;
 
@@ -210,7 +210,7 @@ export default function ManualAttendanceTable() {
                     columns={columns}
                     data={rows}
                     userRole={userRole}
-                    editRoles={["Admin", "Super Admin"]}
+                    editRoles={["Admin", "Super Admin", "Attendance Team"]}
                     deleteRoles={["Admin", "Super Admin"]}
                     onEdit={openEditModal}
                     onDelete={openDeleteModal}
