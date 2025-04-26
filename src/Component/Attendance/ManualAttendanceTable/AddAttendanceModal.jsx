@@ -52,7 +52,6 @@ export default function AddAttendanceModal({isOpen, onClose, onAdded}) {
             .then(() => {
                 toast.success("Attendance added");
                 onAdded();
-                onClose();
             })
             .catch(() => toast.error("Failed to add attendance"));
     };
