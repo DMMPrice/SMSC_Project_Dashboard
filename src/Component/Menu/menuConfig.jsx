@@ -23,19 +23,19 @@ const menuItems = [
         key: "employee-details",
         title: "Employee Details",
         icon: <MdManageSearch className="h-10 w-10 text-blue-600"/>,
-        allowedRoles: ["Admin", "Manager", "Employee", "Super Admin"],
+        allowedRoles: ["Admin", "Manager", "Employee", "Super Admin", "Attendance Team"],
         submenu: [
             {
                 title: "View Profile",
                 path: `/employees/profile`,
                 icon: <CgProfile className="h-6 w-6 text-blue-600"/>,
-                allowedRoles: ["Admin", "Manager", "Employee", "Super Admin"],
+                allowedRoles: ["Admin", "Manager", "Employee", "Super Admin", "Attendance Team"],
             },
             {
                 title: "All Employees",
                 path: "/employees/all",
                 icon: <IoPeopleSharp className="h-6 w-6 text-blue-600"/>,
-                allowedRoles: ["Admin", "Manager", "Super Admin"],
+                allowedRoles: ["Admin", "Manager", "Super Admin", "Attendance Team"],
             },
             {
                 title: "Add New Member",
@@ -49,13 +49,13 @@ const menuItems = [
         key: "work-day-entries",
         title: "Work Day Entries",
         icon: <MdWork className="h-10 w-10 text-indigo-600"/>,
-        allowedRoles: ["Admin", "Manager", "Employee", "Super Admin"],
+        allowedRoles: ["Admin", "Manager", "Employee", "Super Admin", "Attendance Team"],
         submenu: [
             {
                 title: "Submit Entry",
                 path: `/work-entry`,
                 icon: <MdFormatListBulletedAdd className="h-6 w-6 text-indigo-600"/>,
-                allowedRoles: ["Admin", "Manager", "Employee", "Super Admin"],
+                allowedRoles: ["Admin", "Manager", "Employee", "Super Admin", "Attendance Team"],
             },
             {
                 title: "View All Entries",
@@ -69,13 +69,13 @@ const menuItems = [
         key: "attendance",
         title: "Attendance",
         icon: <MdOutlineSpellcheck className="h-10 w-10 text-green-600"/>,
-        allowedRoles: ["Admin", "Attendance Team", "Manager", "Super Admin"],
+        allowedRoles: ["Admin", "Attendance Team", "Manager", "Super Admin", "Employee"],
         submenu: [
             {
                 title: "Fill Attendance",
                 path: "/attendance",
                 icon: <MdPresentToAll className="h-6 w-6 text-green-600"/>,
-                allowedRoles: ["Admin", "Attendance Team", "Manager", "Super Admin"],
+                allowedRoles: ["Admin", "Attendance Team", "Manager", "Super Admin", "Employee"],
             },
         ],
     },
@@ -83,25 +83,25 @@ const menuItems = [
         key: "project-status",
         title: "Project Status",
         icon: <VscGraph className="h-10 w-10 text-red-600"/>,
-        allowedRoles: ["Admin", "Manager", "Employee", "Super Admin"],
+        allowedRoles: ["Super Admin"],
         submenu: [
             {
                 title: "View All Projects",
                 path: "/dev",
                 icon: <BsTextParagraph className="h-6 w-6 text-red-600"/>,
-                allowedRoles: ["Admin", "Manager", "Super Admin"],
+                allowedRoles: ["Super Admin"],
             },
             {
                 title: "Ongoing Projects",
                 path: "/dev",
                 icon: <GoGraph className="h-6 w-6 text-red-600"/>,
-                allowedRoles: ["Manager", "Admin"],
+                allowedRoles: ["Super Admin"],
             },
             {
                 title: "Completed Projects",
                 path: "/dev",
                 icon: <MdIncompleteCircle className="h-6 w-6 text-red-600"/>,
-                allowedRoles: ["Admin"],
+                allowedRoles: ["Super Admin"],
             },
         ],
     },

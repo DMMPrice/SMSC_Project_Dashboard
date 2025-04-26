@@ -87,7 +87,7 @@ function App() {
                     <Route path="*" element={<Error404/>}/>
                 </Routes>
 
-                <Footer/>
+                {/*<Footer/>*/}
             </Router>
             <ToastContainer position="top-right" autoClose={3000}/>
         </>

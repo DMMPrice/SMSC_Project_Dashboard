@@ -1,197 +1,310 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import { API_URL } from '../../../config.js';
+// src/Component/Employee-Details/AddEmployeeForm/AddEmployeeForm.jsx
+import React, {useState, useEffect} from "react";
+import axios from "axios";
+import {toast} from "react-toastify";
+import {format} from "date-fns";
 
-const AddEmployeeForm = () => {
-  const [form, setForm] = useState({
-    employee_id: '',
-    full_name: '',
-    email: '',
-    password: '',
-    phone: '',
-    work_position: '',
-    date_of_birth: '',
-    address: '',
-    fathers_name: '',
-    aadhar_no: '',
-    profile_photo: '',
-    role: ''
-  });
+import BasicDatePicker from "@/Component/Utils/DateTimePicker.jsx";
+import CustomSelect from "@/Component/Utils/CustomSelect.jsx";
+import {API_URL} from "@/config.js";
 
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [loading, setLoading] = useState(true);
+const WORK_POSITIONS = [
+    "Director",
+    "Manager",
+    "Developer",
+    "Designer",
+    // …etc
+];
 
-  useEffect(() => {
-    const generatePassword = () => {
-      const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
-      return Array.from({ length: 8 }, () => chars.charAt(Math.floor(Math.random() * chars.length))).join('');
+const ROLES = [
+    "Employee",
+    "Admin",
+    "Attendance Team"
+];
+
+// Helper to generate a random 8-character password
+function generateRandomPassword(length = 8) {
+    const chars =
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    let pw = "";
+    for (let i = 0; i < length; i++) {
+        pw += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return pw;
+}
+
+export default function AddEmployeeForm() {
+    const [form, setForm] = useState({
+        employee_id: "",
+        full_name: "",
+        email: "",
+        phone: "",
+        address: "",
+        fathers_name: "",
+        aadhar_no: "",
+        date_of_birth: "",
+        work_position: "",
+        role: "",
+        password: "",
+    });
+
+    // "auto" or "custom"
+    const [passwordOption, setPasswordOption] = useState("auto");
+    const [customPassword, setCustomPassword] = useState("");
+
+    // Whenever we switch to "auto", generate a fresh password
+    useEffect(() => {
+        if (passwordOption === "auto") {
+            setForm((f) => ({...f, password: generateRandomPassword()}));
+        }
+    }, [passwordOption]);
+
+    // Generic setter for text inputs
+    const handleChange = (field) => (e) =>
+        setForm((f) => ({...f, [field]: e.target.value}));
+
+    // DatePicker callback gives us a JS Date or Dayjs object
+    const handleDateChange = (newDate) => {
+        const iso = newDate ? format(new Date(newDate), "yyyy-MM-dd") : "";
+        setForm((f) => ({...f, date_of_birth: iso}));
     };
 
-    setForm((prev) => ({
-      ...prev,
-      password: generatePassword()
-    }));
+    // CustomSelect callbacks
+    const handlePositionChange = (pos) =>
+        setForm((f) => ({...f, work_position: pos}));
+    const handleRoleChange = (rl) =>
+        setForm((f) => ({...f, role: rl}));
 
-    const timer = setTimeout(() => setLoading(false), 300);
-    return () => clearTimeout(timer);
-  }, []);
+    // Submit form
+    const handleSubmit = async (e) => {
+        e.preventDefault();
 
-  const handleChange = (e) => {
-    const { name, value, files } = e.target;
-    if (name === 'profile_photo') {
-      const reader = new FileReader();
-      reader.onload = () => {
-        setForm((prev) => ({ ...prev, profile_photo: reader.result.split(',')[1] }));
-      };
-      if (files[0]) reader.readAsDataURL(files[0]);
-    } else {
-      setForm((prev) => ({ ...prev, [name]: value }));
-    }
-  };
+        // Choose final password
+        const password =
+            passwordOption === "auto" ? form.password : customPassword.trim();
 
-  const formatDate = (date) => {
-    if (!date) return '';
-    const parts = date.split('-');
-    if (parts.length === 3 && parts[2].length === 4) {
-      return `${parts[2]}-${parts[1]}-${parts[0]}`;
-    }
-    return date;
-  };
+        if (passwordOption === "custom" && !password) {
+            return toast.error("Please enter a custom password");
+        }
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setIsSubmitting(true);
+        // Validate required fields
+        const required = [
+            "employee_id",
+            "full_name",
+            "email",
+            "phone",
+            "address",
+            "fathers_name",
+            "aadhar_no",
+            "date_of_birth",
+            "work_position",
+            "role",
+        ];
+        const missing = required.filter((f) => !form[f]);
+        if (missing.length) {
+            return toast.error(`Missing fields: ${missing.join(", ")}`);
+        }
 
-    try {
-      const payload = {
-        ...form,
-        date_of_birth: formatDate(form.date_of_birth)
-      };
+        try {
+            // note the plural "users" endpoint
+            await axios.post(`${API_URL}users/`, {
+                ...form,
+                password,
+            });
+            toast.success("Employee created successfully");
+            // Reset form
+            setForm({
+                employee_id: "",
+                full_name: "",
+                email: "",
+                phone: "",
+                address: "",
+                fathers_name: "",
+                aadhar_no: "",
+                date_of_birth: "",
+                work_position: "",
+                role: "",
+                password: "",
+            });
+            setCustomPassword("");
+            setPasswordOption("auto");
+        } catch (err) {
+            console.error(err);
+            toast.error("Failed to create employee");
+        }
+    };
 
-      const res = await axios.post(`${API_URL}employees/add`, payload, {
-        headers: { 'Content-Type': 'application/json' }
-      });
-
-      alert(`✅ Employee added! Password: ${form.password}`);
-      localStorage.setItem('employeeId', res.data.employee_id);
-      window.location.href = `/admin/employees/${res.data.employee_id}`;
-
-    } catch (err) {
-      console.error('❌ Error:', err);
-      const msg = err.response?.data?.message || err.message || 'Something went wrong!';
-      alert('❌ Error: ' + msg);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  return (
-    <div className="min-h-screen bg-white flex items-center justify-center px-4 py-8">
-      {loading ? (
-        <div className="animate-spin rounded-full h-10 w-10 border-t-4 border-blue-600"></div>
-      ) : (
-        <div className="bg-white shadow-xl rounded-xl w-full max-w-5xl h-full overflow-hidden p-6 animate-fade-in">
-          <h2 className="text-2xl font-bold text-center text-blue-700 mb-4">Add New Member</h2>
-
-          <form
+    return (
+        <form
             onSubmit={handleSubmit}
-            className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[75vh] overflow-y-auto pr-2"
-          >
-            <div>
-              <label className="block text-sm font-semibold mb-1">Employee ID</label>
-              <input
-                type="text"
-                name="employee_id"
-                value={form.employee_id}
-                onChange={handleChange}
-                required
-                className="w-full px-4 py-2 border rounded-lg"
-              />
+            className="bg-white p-8 rounded-lg shadow-md max-w-4xl mx-auto"
+        >
+            <h2 className="text-2xl font-semibold mb-6">Add New Member</h2>
+
+            <div className="grid grid-cols-2 gap-6">
+                {/* Employee ID */}
+                <div>
+                    <label className="block font-medium mb-1">Employee ID</label>
+                    <input
+                        type="text"
+                        value={form.employee_id}
+                        onChange={handleChange("employee_id")}
+                        className="w-full border px-3 py-2 rounded"
+                    />
+                </div>
+
+                {/* Password Choice */}
+                <div>
+                    <label className="block font-medium mb-1">Password</label>
+                    <div className="flex items-center gap-4 mb-2">
+                        <label className="inline-flex items-center">
+                            <input
+                                type="radio"
+                                name="pwOpt"
+                                value="auto"
+                                checked={passwordOption === "auto"}
+                                onChange={() => setPasswordOption("auto")}
+                                className="mr-2"
+                            />
+                            Auto-generate
+                        </label>
+                        <label className="inline-flex items-center">
+                            <input
+                                type="radio"
+                                name="pwOpt"
+                                value="custom"
+                                checked={passwordOption === "custom"}
+                                onChange={() => setPasswordOption("custom")}
+                                className="mr-2"
+                            />
+                            Custom
+                        </label>
+                    </div>
+                    {passwordOption === "auto" ? (
+                        <input
+                            type="text"
+                            value={form.password}
+                            readOnly
+                            className="w-full border px-3 py-2 rounded bg-gray-100"
+                        />
+                    ) : (
+                        <input
+                            type="text"
+                            value={customPassword}
+                            onChange={(e) => setCustomPassword(e.target.value)}
+                            placeholder="Enter password"
+                            className="w-full border px-3 py-2 rounded"
+                        />
+                    )}
+                </div>
+
+                {/* Full Name */}
+                <div>
+                    <label className="block font-medium mb-1">Full Name</label>
+                    <input
+                        type="text"
+                        value={form.full_name}
+                        onChange={handleChange("full_name")}
+                        className="w-full border px-3 py-2 rounded"
+                    />
+                </div>
+
+                {/* Email */}
+                <div>
+                    <label className="block font-medium mb-1">Email</label>
+                    <input
+                        type="email"
+                        value={form.email}
+                        onChange={handleChange("email")}
+                        className="w-full border px-3 py-2 rounded"
+                    />
+                </div>
+
+                {/* Phone */}
+                <div>
+                    <label className="block font-medium mb-1">Phone</label>
+                    <input
+                        type="tel"
+                        value={form.phone}
+                        onChange={handleChange("phone")}
+                        className="w-full border px-3 py-2 rounded"
+                    />
+                </div>
+
+                {/* Address */}
+                <div>
+                    <label className="block font-medium mb-1">Address</label>
+                    <input
+                        type="text"
+                        value={form.address}
+                        onChange={handleChange("address")}
+                        className="w-full border px-3 py-2 rounded"
+                    />
+                </div>
+
+                {/* Father’s Name */}
+                <div>
+                    <label className="block font-medium mb-1">Father’s Name</label>
+                    <input
+                        type="text"
+                        value={form.fathers_name}
+                        onChange={handleChange("fathers_name")}
+                        className="w-full border px-3 py-2 rounded"
+                    />
+                </div>
+
+                {/* Aadhar No */}
+                <div>
+                    <label className="block font-medium mb-1">Aadhar No</label>
+                    <input
+                        type="text"
+                        value={form.aadhar_no}
+                        onChange={handleChange("aadhar_no")}
+                        className="w-full border px-3 py-2 rounded"
+                    />
+                </div>
+
+                {/* Date of Birth */}
+                <div>
+                    <label className="block font-medium mb-1">Date of Birth</label>
+                    <BasicDatePicker
+                        label="YYYY-MM-DD"
+                        value={form.date_of_birth}
+                        onChange={handleDateChange}
+                    />
+                </div>
+
+                {/* Work Position */}
+                <div>
+                    <label className="block font-medium mb-1">Work Position</label>
+                    <CustomSelect
+                        options={WORK_POSITIONS}
+                        value={form.work_position}
+                        onChange={handlePositionChange}
+                        placeholder="Select Position"
+                        className="w-full"
+                    />
+                </div>
+
+                {/* Role */}
+                <div>
+                    <label className="block font-medium mb-1">Role</label>
+                    <CustomSelect
+                        options={ROLES}
+                        value={form.role}
+                        onChange={handleRoleChange}
+                        placeholder="Select Role"
+                        className="w-full"
+                    />
+                </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-semibold mb-1">Auto Password</label>
-              <input
-                type="text"
-                name="password"
-                value={form.password}
-                readOnly
-                className="w-full px-4 py-2 border rounded-lg bg-gray-100 text-gray-600"
-              />
-            </div>
-
-            {[
-              'full_name', 'email', 'phone', 'work_position',
-              'date_of_birth', 'address', 'fathers_name', 'aadhar_no'
-            ].map((name) => (
-              <div key={name}>
-                <label className="block text-sm font-semibold mb-1">
-                  {name.replace('_', ' ').replace(/\b\w/g, c => c.toUpperCase())}
-                </label>
-                <input
-                  type={name === 'date_of_birth' ? 'date' : 'text'}
-                  name={name}
-                  value={form[name]}
-                  onChange={handleChange}
-                  required
-                  className="w-full px-4 py-2 border rounded-lg"
-                />
-              </div>
-            ))}
-
-            <div>
-              <label className="block text-sm font-semibold mb-1">Role</label>
-              <select
-                name="role"
-                value={form.role}
-                onChange={handleChange}
-                required
-                className="w-full px-4 py-2 border rounded-lg"
-              >
-                <option value="">Select Role</option>
-                <option value="Manager">Manager</option>
-                <option value="Admin">Admin</option>
-                <option value="Employee">Employee</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-semibold mb-1">Profile Photo</label>
-              <input
-                type="file"
-                name="profile_photo"
-                accept="image/*"
-                onChange={handleChange}
-                className="w-full"
-              />
-            </div>
-
-            {form.profile_photo && (
-              <div className="md:col-span-2 flex justify-center">
-                <img
-                  src={`data:image/jpeg;base64,${form.profile_photo}`}
-                  alt="Preview"
-                  className="mt-2 w-24 h-24 object-cover rounded-full"
-                />
-              </div>
-            )}
-
-            <div className="md:col-span-2">
-              <button
+            <button
                 type="submit"
-                disabled={isSubmitting}
-                className={`w-full text-white py-2 rounded-lg mt-2 ${
-                  isSubmitting ? 'bg-blue-300' : 'bg-blue-600 hover:bg-blue-700'
-                }`}
-              >
-                {isSubmitting ? 'Adding...' : 'Add Employee'}
-              </button>
-            </div>
-          </form>
-        </div>
-      )}
-    </div>
-  );
-};
-
-export default AddEmployeeForm;
+                className="mt-6 w-full bg-blue-600 text-white py-3 rounded hover:bg-blue-700"
+            >
+                Add Employee
+            </button>
+        </form>
+    );
+}
