@@ -20,6 +20,7 @@ import EmployeeListTable from "./Component/Employee-Details/EmployeeListTable/Em
 import IndividualWorkEntryTable from "./Component/Workday/Work-Entry/Page.jsx";
 import ManualAttendanceTable from "./Component/Attendance/ManualAttendanceTable/ManualAttendanceTable";
 import ActiveProject from "./Component/Project/ActiveProjectList/Page.jsx";
+import ArchivedProject from "./Component/Project/ArchivedProjectList/Page.jsx";
 import ComingSoon from "@/Component/Utils/ComingSoon.jsx";
 import {ToastContainer} from "react-toastify";
 
@@ -83,6 +84,9 @@ function App() {
 
                     <Route path="/projects/active"
                            element={<PrivateRoute element={<ActiveProject />} isAuthenticated={isAuthenticated}/>}/>
+
+                    <Route path="/projects/achived"
+                            element={<PrivateRoute element={<ArchivedProject/>} isAuthenticated={isAuthenticated}/>}/>
 
                     {/* Dev Routes */}
                     <Route

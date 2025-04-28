@@ -98,7 +98,7 @@ const menuItems = [
             },
             {
                 title: "Archive Projects",
-                path: "/projects/archive",
+                path: "/projects/achived",
                 icon: <GoGraph className="h-6 w-6 text-red-600"/>,
                 allowedRoles: ["Super Admin", "Admin", "Employee", "Attendance Team", "Manager"],
             },
