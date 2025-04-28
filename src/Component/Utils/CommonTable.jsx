@@ -1,5 +1,4 @@
-// src/Component/Utils/CommonTable.jsx
-import React, {useState, useEffect, useMemo} from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
     Table,
     TableBody,
@@ -10,7 +9,8 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
-import {Button} from "@/components/ui/Button";
+import { Button } from "@/components/ui/Button";
+import MultiSelectFilter from "@/Component/Utils/MultiSelectFilter.jsx"; // 👈 Import
 
 export default function CommonTable({
                                         title,
@@ -18,75 +18,93 @@ export default function CommonTable({
                                         columns,
                                         data,
                                         footer,
-                                        userRole = null,    // current user’s role
-                                        editRoles = [],     // roles allowed to see “Edit”
-                                        deleteRoles = [],   // roles allowed to see “Delete”
-                                        onEdit = null,      // (row, idx) => {}
-                                        onDelete = null,    // (row, idx) => {}
+                                        userRole = null,
+                                        editRoles = [],
+                                        deleteRoles = [],
+                                        onEdit = null,
+                                        onDelete = null,
                                     }) {
     const [searchTerm, setSearchTerm] = useState("");
+    const [columnFilters, setColumnFilters] = useState({});
     const [currentPage, setCurrentPage] = useState(1);
     const [sortBy, setSortBy] = useState(null);
-    const [sortDir, setSortDir] = useState("asc"); // or "desc"
+    const [sortDir, setSortDir] = useState("asc");
     const itemsPerPage = 20;
 
-    // filter step
     const filtered = useMemo(() => {
-        if (!searchTerm) return data;
-        const term = searchTerm.toLowerCase();
-        return data.filter((row) =>
-            columns.some((col) => {
-                const val = row[col.accessor];
-                return (
-                    val != null &&
-                    val
-                        .toString()
-                        .toLowerCase()
-                        .includes(term)
-                );
-            })
-        );
-    }, [data, searchTerm, columns]);
+        let filteredData = data;
 
-    // sort step
+        if (searchTerm) {
+            const term = searchTerm.toLowerCase();
+            filteredData = filteredData.filter((row) =>
+                columns.some((col) => {
+                    const val = row[col.accessor];
+                    return (
+                        val != null &&
+                        val.toString().toLowerCase().includes(term)
+                    );
+                })
+            );
+        }
+
+        Object.keys(columnFilters).forEach((accessor) => {
+            const filter = columnFilters[accessor];
+            const columnDef = columns.find((col) => col.accessor === accessor);
+
+            if (filter) {
+                filteredData = filteredData.filter((row) => {
+                    const val = row[accessor];
+                    if (columnDef?.filterType === "multi-select") {
+                        if (!Array.isArray(filter)) return true;
+                        if (filter.length === 0) return true;
+                        if (accessor === "is_done") {
+                            return (val ? "Done" : "Not Done") && filter.includes(val ? "Done" : "Not Done");
+                        }
+                        return filter.includes(val);
+                    } else {
+                        return (
+                            val != null &&
+                            val.toString().toLowerCase().includes(filter.toLowerCase())
+                        );
+                    }
+                });
+            }
+        });
+
+        return filteredData;
+    }, [data, searchTerm, columnFilters, columns]);
+
     const sorted = useMemo(() => {
         if (!sortBy) return filtered;
         const dir = sortDir === "asc" ? 1 : -1;
         return [...filtered].sort((a, b) => {
             const va = a[sortBy];
             const vb = b[sortBy];
-            // handle null/undefined
+
             if (va == null && vb == null) return 0;
             if (va == null) return -1 * dir;
             if (vb == null) return 1 * dir;
-            // numeric?
+
             if (!isNaN(va) && !isNaN(vb)) {
                 return (parseFloat(va) - parseFloat(vb)) * dir;
             }
-            // string compare
+
             return va.toString().localeCompare(vb.toString()) * dir;
         });
     }, [filtered, sortBy, sortDir]);
 
-    // pagination step
     const totalPages = Math.max(1, Math.ceil(sorted.length / itemsPerPage));
-    useEffect(() => setCurrentPage(1), [searchTerm, sortBy, sortDir]);
+    useEffect(() => setCurrentPage(1), [searchTerm, sortBy, sortDir, columnFilters]);
     const paginated = useMemo(
-        () =>
-            sorted.slice(
-                (currentPage - 1) * itemsPerPage,
-                currentPage * itemsPerPage
-            ),
+        () => sorted.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage),
         [sorted, currentPage]
     );
 
     const canEdit = onEdit && editRoles.includes(userRole);
     const canDelete = onDelete && deleteRoles.includes(userRole);
 
-    const handlePrevious = () =>
-        setCurrentPage((p) => Math.max(1, p - 1));
-    const handleNext = () =>
-        setCurrentPage((p) => Math.min(totalPages, p + 1));
+    const handlePrevious = () => setCurrentPage((p) => Math.max(1, p - 1));
+    const handleNext = () => setCurrentPage((p) => Math.min(totalPages, p + 1));
 
     const handleSort = (accessor) => {
         if (sortBy === accessor) {
@@ -97,7 +115,6 @@ export default function CommonTable({
         }
     };
 
-    // CSV export (includes filtering+sorting, not just current page)
     const downloadCSV = () => {
         const headers = columns.map((c) => c.header);
         const rowsCsv = sorted.map((row) =>
@@ -110,7 +127,7 @@ export default function CommonTable({
                 .join(",")
         );
         const csv = [headers.join(","), ...rowsCsv].join("\n");
-        const blob = new Blob([csv], {type: "text/csv"});
+        const blob = new Blob([csv], { type: "text/csv" });
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
@@ -122,16 +139,14 @@ export default function CommonTable({
     return (
         <div className="py-4">
             {title && (
-                <h3 className="text-xl font-semibold mt-6 mb-2 text-black">
-                    {title}
-                </h3>
+                <h3 className="text-xl font-bold mb-4 text-gray-800">{title}</h3>
             )}
 
-            {/* Search & Download */}
+            {/* Global Search + Download */}
             <div className="flex justify-between mb-4">
                 <input
                     type="text"
-                    placeholder="Search..."
+                    placeholder="Search all..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="flex-1 mr-2 px-4 py-2 border rounded-md"
@@ -144,75 +159,73 @@ export default function CommonTable({
                 </button>
             </div>
 
-            <div className="overflow-x-auto bg-white shadow-md rounded-md">
+            {/* Table */}
+            <div className="overflow-x-auto bg-white shadow-md rounded-lg">
                 <Table className="min-w-full bg-white">
                     {caption && <TableCaption>{caption}</TableCaption>}
 
+                    {/* Headers */}
                     <TableHeader>
                         <TableRow className="bg-gray-200 text-gray-800">
                             {columns.map((col) => (
                                 <TableHead
                                     key={col.accessor}
-                                    className="px-4 py-2 cursor-pointer select-none"
+                                    className="px-4 py-2 cursor-pointer"
                                     onClick={() => handleSort(col.accessor)}
                                 >
-                                    {col.header}{" "}
-                                    {sortBy === col.accessor && (sortDir === "asc" ? "▲" : "▼")}
+                                    {col.header} {sortBy === col.accessor && (sortDir === "asc" ? "▲" : "▼")}
                                 </TableHead>
                             ))}
-                            {canEdit && (
-                                <TableHead className="px-4 py-2 text-center">
-                                    Edit
+                            {canEdit && <TableHead>Edit</TableHead>}
+                            {canDelete && <TableHead>Delete</TableHead>}
+                        </TableRow>
+
+                        {/* Filters */}
+                        <TableRow>
+                            {columns.map((col) => (
+                                <TableHead key={col.accessor} className="text-center">
+                                    {col.filterType === "multi-select" ? (
+                                        <MultiSelectFilter
+                                            options={col.options || []}
+                                            selectedValues={columnFilters[col.accessor] || []}
+                                            onChange={(selected) => setColumnFilters((prev) => ({ ...prev, [col.accessor]: selected }))}
+                                        />
+                                    ) : (
+                                        <input
+                                            type="text"
+                                            placeholder={`Filter ${col.header}`}
+                                            value={columnFilters[col.accessor] || ""}
+                                            onChange={(e) => setColumnFilters((prev) => ({ ...prev, [col.accessor]: e.target.value }))}
+                                            className="w-full p-1 text-xs border rounded"
+                                        />
+                                    )}
                                 </TableHead>
-                            )}
-                            {canDelete && (
-                                <TableHead className="px-4 py-2 text-center">
-                                    Delete
-                                </TableHead>
-                            )}
+                            ))}
+                            {canEdit && <TableHead />}
+                            {canDelete && <TableHead />}
                         </TableRow>
                     </TableHeader>
 
                     <TableBody>
-                        {paginated.map((row, rowIdx) => {
-                            const originalIdx =
-                                (currentPage - 1) * itemsPerPage + rowIdx;
-                            const rowKey =
-                                row.id ?? `${rowIdx}-${JSON.stringify(row).slice(0, 20)}`;
-
+                        {paginated.map((row, idx) => {
+                            const key = row.id ?? `${idx}-${JSON.stringify(row).slice(0, 20)}`;
                             return (
-                                <TableRow
-                                    key={rowKey}
-                                    className="hover:bg-gray-300 transition-colors duration-150"
-                                >
+                                <TableRow key={key}>
                                     {columns.map((col) => (
-                                        <TableCell
-                                            key={col.accessor}
-                                            className="px-4 py-2"
-                                        >
-                                            {col.render
-                                                ? col.render(row, originalIdx)
-                                                : row[col.accessor] ?? "N/A"}
+                                        <TableCell key={col.accessor}>
+                                            {col.render ? col.render(row, idx) : row[col.accessor] ?? "N/A"}
                                         </TableCell>
                                     ))}
                                     {canEdit && (
-                                        <TableCell className="px-4 py-2 text-center">
-                                            <Button
-                                                size="sm"
-                                                variant="outline"
-                                                onClick={() => onEdit(row, originalIdx)}
-                                            >
+                                        <TableCell className="text-center">
+                                            <Button size="sm" variant="outline" onClick={() => onEdit(row, idx)}>
                                                 Edit
                                             </Button>
                                         </TableCell>
                                     )}
                                     {canDelete && (
-                                        <TableCell className="px-4 py-2 text-center">
-                                            <Button
-                                                size="sm"
-                                                variant="destructive"
-                                                onClick={() => onDelete(row, originalIdx)}
-                                            >
+                                        <TableCell className="text-center">
+                                            <Button size="sm" variant="destructive" onClick={() => onDelete(row, idx)}>
                                                 Delete
                                             </Button>
                                         </TableCell>
@@ -226,9 +239,7 @@ export default function CommonTable({
                         <TableFooter>
                             <TableRow>
                                 {footer.totalLabels.map((label, idx) => (
-                                    <TableCell key={`footer-${idx}`}>
-                                        {label.content}
-                                    </TableCell>
+                                    <TableCell key={idx}>{label.content}</TableCell>
                                 ))}
                             </TableRow>
                         </TableFooter>
@@ -238,21 +249,13 @@ export default function CommonTable({
 
             {/* Pagination */}
             <div className="flex justify-between items-center mt-4 px-4">
-                <Button
-                    variant="outline"
-                    onClick={handlePrevious}
-                    disabled={currentPage === 1}
-                >
+                <Button variant="outline" onClick={handlePrevious} disabled={currentPage === 1}>
                     Previous
                 </Button>
                 <span className="text-sm">
           Page {currentPage} of {totalPages}
         </span>
-                <Button
-                    variant="outline"
-                    onClick={handleNext}
-                    disabled={currentPage === totalPages}
-                >
+                <Button variant="outline" onClick={handleNext} disabled={currentPage === totalPages}>
                     Next
                 </Button>
             </div>

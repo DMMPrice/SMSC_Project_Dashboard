@@ -51,16 +51,10 @@ const menuItems = [
         allowedRoles: ["Admin", "Manager", "Employee", "Super Admin", "Attendance Team"],
         submenu: [
             {
-                title: "Submit Entry",
+                title: "Work Entries",
                 path: `/work-entry`,
                 icon: <MdFormatListBulletedAdd className="h-6 w-6 text-indigo-600"/>,
                 allowedRoles: ["Admin", "Manager", "Employee", "Super Admin", "Attendance Team"],
-            },
-            {
-                title: "View All Entries",
-                path: "/work-entries-employee",
-                icon: <MdOutlineViewAgenda className="h-6 w-6 text-indigo-600"/>,
-                allowedRoles: ["Admin", "Manager", "Super Admin"],
             },
         ],
     },
@@ -77,8 +71,8 @@ const menuItems = [
                 allowedRoles: ["Admin", "Attendance Team", "Manager", "Super Admin", "Employee"],
             },
             {
-                title: "Add Entry",
-                path: '/dev',
+                title: "Add Mass Attendance",
+                path: '/attendance/mass-entry',
                 icon: <MdFormatListBulletedAdd className="h-6 w-6 text-green-600"/>,
                 allowedRoles: ["Admin", "Attendance Team", "Manager", "Super Admin"],
             }

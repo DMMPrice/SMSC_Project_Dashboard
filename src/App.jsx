@@ -15,10 +15,11 @@ import Menu from "./Component/Menu/Menu";
 import SubMenu from "./Component/Menu/SubMenu.jsx"
 import EmployeeProfile from "./Component/Employee-Details/EmployeeProfile/EmployeeProfile";
 import AddEmployeeForm from "./Component/Employee-Details/AddEmployeeForm/AddEmployeeForm";
-import WorkEntryTable from "./Component/Workday/Work-Entry-Employee/WorkEntryTable";
+import WorkEntryTable from "./Component/Workday/Work-Entry/Page.jsx";
 import EmployeeListTable from "./Component/Employee-Details/EmployeeListTable/EmployeeListTable";
 import IndividualWorkEntryTable from "./Component/Workday/Work-Entry/Page.jsx";
 import ManualAttendanceTable from "./Component/Attendance/ManualAttendanceTable/ManualAttendanceTable";
+import MassAttendancePage from "./Component/Attendance/MassEntry/Page.jsx";
 import ActiveProject from "./Component/Project/ActiveProjectList/Page.jsx";
 import ArchivedProject from "./Component/Project/ArchivedProjectList/Page.jsx";
 import ComingSoon from "@/Component/Utils/ComingSoon.jsx";
@@ -79,14 +80,16 @@ function App() {
                     <Route path="/attendance"
                            element={<PrivateRoute element={<ManualAttendanceTable/>}
                                                   isAuthenticated={isAuthenticated}/>}/>
+                    <Route path="/attendance/mass-entry" element={<MassAttendancePage/>}
+                           isAuthenticated={isAuthenticated}/>
 
                     {/* Project Routes */}
 
                     <Route path="/projects/active"
-                           element={<PrivateRoute element={<ActiveProject />} isAuthenticated={isAuthenticated}/>}/>
+                           element={<PrivateRoute element={<ActiveProject/>} isAuthenticated={isAuthenticated}/>}/>
 
                     <Route path="/projects/achived"
-                            element={<PrivateRoute element={<ArchivedProject/>} isAuthenticated={isAuthenticated}/>}/>
+                           element={<PrivateRoute element={<ArchivedProject/>} isAuthenticated={isAuthenticated}/>}/>
 
                     {/* Dev Routes */}
                     <Route
