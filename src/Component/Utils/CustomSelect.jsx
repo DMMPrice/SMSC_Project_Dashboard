@@ -1,4 +1,3 @@
-// src/Component/Utils/CustomSelect.jsx
 import React, {useState, useRef, useEffect} from "react";
 
 function CustomSelect({
@@ -21,17 +20,19 @@ function CustomSelect({
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
+    // Find the currently selected label
+    const selectedLabel = options.find((opt) =>
+        typeof opt === "object" ? opt.value === value : opt === value
+    )?.label || value;
+
     return (
-        <div
-            ref={selectRef}
-            className={`relative overflow-visible ${className}`}   // ← allow overflow
-        >
+        <div ref={selectRef} className={`relative overflow-visible ${className}`}>
             {/* trigger */}
             <div
                 className="w-full px-4 py-2 border rounded-md bg-white shadow-sm cursor-pointer hover:shadow-md"
                 onClick={() => setIsOpen((o) => !o)}
             >
-                {value || placeholder}
+                {selectedLabel || placeholder}
             </div>
 
             {/* dropdown */}
@@ -43,11 +44,11 @@ function CustomSelect({
                                 key={i}
                                 className="px-4 py-2 cursor-pointer hover:bg-gray-100"
                                 onClick={() => {
-                                    onChange(opt);
+                                    onChange(opt); // Pass entire object
                                     setIsOpen(false);
                                 }}
                             >
-                                {opt}
+                                {typeof opt === "object" ? opt.label : opt}
                             </li>
                         ))
                     ) : (

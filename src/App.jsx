@@ -9,7 +9,6 @@ import {
 
 import "./App.css";
 import NavBar from "./Component/NavBar/NavBar";
-import Footer from "./Component/Footer/Footer";
 import LandingPage from "./Component/LandingPage/LandingPage";
 import Error404 from "./Component/Utils/error";
 import Menu from "./Component/Menu/Menu";
@@ -20,6 +19,7 @@ import WorkEntryTable from "./Component/Workday/Work-Entry-Employee/WorkEntryTab
 import EmployeeListTable from "./Component/Employee-Details/EmployeeListTable/EmployeeListTable";
 import IndividualWorkEntryTable from "./Component/Workday/Work-Entry/Page.jsx";
 import ManualAttendanceTable from "./Component/Attendance/ManualAttendanceTable/ManualAttendanceTable";
+import ActiveProject from "./Component/Project/ActiveProjectList/Page.jsx";
 import ComingSoon from "@/Component/Utils/ComingSoon.jsx";
 import {ToastContainer} from "react-toastify";
 
@@ -55,7 +55,6 @@ function App() {
                             <LandingPage setIsAuthenticated={setIsAuthenticated}/>}
                     />
 
-
                     <Route path="/menu" element={<PrivateRoute element={<Menu/>} isAuthenticated={isAuthenticated}/>}/>
                     <Route path="/menu/:menuKey"
                            element={<PrivateRoute element={<SubMenu/>} isAuthenticated={isAuthenticated}/>}/>\
@@ -79,6 +78,13 @@ function App() {
                     <Route path="/attendance"
                            element={<PrivateRoute element={<ManualAttendanceTable/>}
                                                   isAuthenticated={isAuthenticated}/>}/>
+
+                    {/* Project Routes */}
+
+                    <Route path="/projects/active"
+                           element={<PrivateRoute element={<ActiveProject />} isAuthenticated={isAuthenticated}/>}/>
+
+                    {/* Dev Routes */}
                     <Route
                         path="/dev"
                         element={<PrivateRoute element={<ComingSoon/>} isAuthenticated={isAuthenticated}/>}

@@ -10,7 +10,6 @@ import {
 } from "react-icons/md";
 import {
     FaUserPlus,
-    FaUserEdit,
 } from "react-icons/fa";
 import {CgProfile} from "react-icons/cg";
 import {IoPeopleSharp} from "react-icons/io5";
@@ -72,33 +71,39 @@ const menuItems = [
         allowedRoles: ["Admin", "Attendance Team", "Manager", "Super Admin", "Employee"],
         submenu: [
             {
-                title: "Fill Attendance",
+                title: "View All Entries",
                 path: "/attendance",
                 icon: <MdPresentToAll className="h-6 w-6 text-green-600"/>,
                 allowedRoles: ["Admin", "Attendance Team", "Manager", "Super Admin", "Employee"],
             },
+            {
+                title: "Add Entry",
+                path: '/dev',
+                icon: <MdFormatListBulletedAdd className="h-6 w-6 text-green-600"/>,
+                allowedRoles: ["Admin", "Attendance Team", "Manager", "Super Admin"],
+            }
         ],
     },
     {
         key: "project-status",
-        title: "Project Status",
+        title: "Project Section",
         icon: <VscGraph className="h-10 w-10 text-red-600"/>,
-        allowedRoles: ["Super Admin"],
+        allowedRoles: ["Super Admin", "Admin", "Employee", "Attendance Team", "Manager"],
         submenu: [
             {
-                title: "View All Projects",
-                path: "/dev",
+                title: "View Active Projects",
+                path: "/projects/active",
                 icon: <BsTextParagraph className="h-6 w-6 text-red-600"/>,
-                allowedRoles: ["Super Admin"],
+                allowedRoles: ["Super Admin", "Admin", "Employee", "Attendance Team", "Manager"],
             },
             {
-                title: "Ongoing Projects",
-                path: "/dev",
+                title: "Archive Projects",
+                path: "/projects/archive",
                 icon: <GoGraph className="h-6 w-6 text-red-600"/>,
-                allowedRoles: ["Super Admin"],
+                allowedRoles: ["Super Admin", "Admin", "Employee", "Attendance Team", "Manager"],
             },
             {
-                title: "Completed Projects",
+                title: "Billing Status",
                 path: "/dev",
                 icon: <MdIncompleteCircle className="h-6 w-6 text-red-600"/>,
                 allowedRoles: ["Super Admin"],

@@ -28,7 +28,7 @@ export default function CommonTable({
     const [currentPage, setCurrentPage] = useState(1);
     const [sortBy, setSortBy] = useState(null);
     const [sortDir, setSortDir] = useState("asc"); // or "desc"
-    const itemsPerPage = 10;
+    const itemsPerPage = 20;
 
     // filter step
     const filtered = useMemo(() => {
