@@ -10,6 +10,7 @@ import BasicDatePicker from "@/Component/Utils/DateTimePicker.jsx";
 import dayjs from "dayjs";
 
 export default function EditProjectModal({isOpen, onClose, project, onSave}) {
+    const [initialAssigned, setInitialAssigned] = useState([]);
     const [form, setForm] = useState({
         project_name: "",
         total_estimate_hrs: 0,
@@ -22,7 +23,7 @@ export default function EditProjectModal({isOpen, onClose, project, onSave}) {
     const [allUsers, setAllUsers] = useState([]);
     const [newAssignId, setNewAssignId] = useState("");
 
-    // Initialize form when `project` prop changes
+    // Initialize form & initialAssigned when `project` prop changes
     useEffect(() => {
         if (!project) return;
         setForm({
@@ -34,6 +35,7 @@ export default function EditProjectModal({isOpen, onClose, project, onSave}) {
             is_completed: project.is_completed || false,
             created_at: project.created_at || null,
         });
+        setInitialAssigned(project.assigned_ids || []);
     }, [project]);
 
     // Fetch all users once
@@ -51,8 +53,7 @@ export default function EditProjectModal({isOpen, onClose, project, onSave}) {
     // Auto-toggle `is_completed` when all subparts are done
     useEffect(() => {
         const subs = form.project_subparts;
-        const allDone =
-            subs.length > 0 && subs.every((sp) => Boolean(sp.is_done));
+        const allDone = subs.length > 0 && subs.every((sp) => Boolean(sp.is_done));
         if (allDone !== form.is_completed) {
             setForm((f) => ({...f, is_completed: allDone}));
         }
@@ -65,10 +66,7 @@ export default function EditProjectModal({isOpen, onClose, project, onSave}) {
 
     // Add a new assigned ID
     const handleAddAssignedId = () => {
-        if (
-            newAssignId !== "" &&
-            !form.assigned_ids.includes(newAssignId)
-        ) {
+        if (newAssignId !== "" && !form.assigned_ids.includes(newAssignId)) {
             setForm((f) => ({
                 ...f,
                 assigned_ids: [...f.assigned_ids, newAssignId],
@@ -130,9 +128,7 @@ export default function EditProjectModal({isOpen, onClose, project, onSave}) {
     if (!isOpen) return null;
 
     // Filter out users already assigned
-    const availableUsers = allUsers.filter(
-        (u) => !form.assigned_ids.includes(u.id)
-    );
+    const availableUsers = allUsers.filter((u) => !form.assigned_ids.includes(u.id));
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
@@ -145,9 +141,7 @@ export default function EditProjectModal({isOpen, onClose, project, onSave}) {
                     &times;
                 </button>
 
-                <h2 className="text-2xl font-bold mb-6 text-center">
-                    Edit Project
-                </h2>
+                <h2 className="text-2xl font-bold mb-6 text-center">Edit Project</h2>
 
                 {/* Basic Info */}
                 <div className="space-y-4 mb-8">
@@ -155,9 +149,7 @@ export default function EditProjectModal({isOpen, onClose, project, onSave}) {
                     <InputField
                         label="Project Name"
                         value={form.project_name}
-                        onChange={(e) =>
-                            handleInputChange("project_name", e.target.value)
-                        }
+                        onChange={(e) => handleInputChange("project_name", e.target.value)}
                     />
                     <div className="flex gap-4">
                         <InputField
@@ -165,10 +157,7 @@ export default function EditProjectModal({isOpen, onClose, project, onSave}) {
                             type="number"
                             value={form.total_estimate_hrs}
                             onChange={(e) =>
-                                handleInputChange(
-                                    "total_estimate_hrs",
-                                    Number(e.target.value)
-                                )
+                                handleInputChange("total_estimate_hrs", Number(e.target.value))
                             }
                         />
                         <InputField
@@ -176,19 +165,14 @@ export default function EditProjectModal({isOpen, onClose, project, onSave}) {
                             type="number"
                             value={form.total_elapsed_hrs}
                             onChange={(e) =>
-                                handleInputChange(
-                                    "total_elapsed_hrs",
-                                    Number(e.target.value)
-                                )
+                                handleInputChange("total_elapsed_hrs", Number(e.target.value))
                             }
                         />
                     </div>
                     <BasicDatePicker
                         label="Created Date"
                         value={form.created_at}
-                        onChange={(val) =>
-                            handleInputChange("created_at", val)
-                        }
+                        onChange={(val) => handleInputChange("created_at", val)}
                     />
 
                     {/* Completed checkbox */}
@@ -197,15 +181,10 @@ export default function EditProjectModal({isOpen, onClose, project, onSave}) {
                             id="is-completed"
                             type="checkbox"
                             checked={form.is_completed}
-                            onChange={(e) =>
-                                handleInputChange("is_completed", e.target.checked)
-                            }
+                            onChange={(e) => handleInputChange("is_completed", e.target.checked)}
                             className="h-4 w-4"
                         />
-                        <label
-                            htmlFor="is-completed"
-                            className="text-sm font-medium"
-                        >
+                        <label htmlFor="is-completed" className="text-sm font-medium">
                             Mark project as complete
                         </label>
                     </div>
@@ -213,16 +192,19 @@ export default function EditProjectModal({isOpen, onClose, project, onSave}) {
 
                 {/* Assigned Employees */}
                 <div className="mb-8">
-                    <h3 className="text-lg font-semibold mb-2">
-                        Assigned Employees
-                    </h3>
+                    <h3 className="text-lg font-semibold mb-2">Assigned Employees</h3>
                     <div className="flex flex-wrap gap-2 mb-4">
                         {form.assigned_ids.map((id) => {
                             const user = allUsers.find((u) => u.id === id);
+                            const isNew = !initialAssigned.includes(id);
                             return (
                                 <div
                                     key={id}
-                                    className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full flex items-center space-x-2"
+                                    className={`${
+                                        isNew
+                                            ? "bg-green-100 text-green-800"
+                                            : "bg-blue-100 text-blue-800"
+                                    } px-3 py-1 rounded-full flex items-center space-x-2`}
                                 >
                                     <span>{user?.full_name || id}</span>
                                     <FaTimes
@@ -245,7 +227,7 @@ export default function EditProjectModal({isOpen, onClose, project, onSave}) {
                                 placeholder="Select employee to assign"
                             />
                         </div>
-                        <Button size="sm" onClick={handleAddAssignedId}>
+                        <Button size="sm" onClick={handleAddAssignedId} className="bg-blue-600 hover:bg-blue-800">
                             Add
                         </Button>
                     </div>
@@ -254,14 +236,8 @@ export default function EditProjectModal({isOpen, onClose, project, onSave}) {
                 {/* Project Subparts */}
                 <div className="pb-8">
                     <div className="flex justify-between items-center mb-2">
-                        <h3 className="text-lg font-semibold">
-                            Project Subparts
-                        </h3>
-                        <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={addSubpart}
-                        >
+                        <h3 className="text-lg font-semibold">Project Subparts</h3>
+                        <Button size="sm" variant="outline" onClick={addSubpart}>
                             + Add Subpart
                         </Button>
                     </div>
@@ -284,11 +260,7 @@ export default function EditProjectModal({isOpen, onClose, project, onSave}) {
                                         <InputField
                                             value={sub.project_subpart_name}
                                             onChange={(e) =>
-                                                handleSubpartChange(
-                                                    idx,
-                                                    "project_subpart_name",
-                                                    e.target.value
-                                                )
+                                                handleSubpartChange(idx, "project_subpart_name", e.target.value)
                                             }
                                         />
                                     </td>
@@ -296,29 +268,14 @@ export default function EditProjectModal({isOpen, onClose, project, onSave}) {
                                         <InputField
                                             type="date"
                                             value={sub.dead_line}
-                                            onChange={(e) =>
-                                                handleSubpartChange(
-                                                    idx,
-                                                    "dead_line",
-                                                    e.target.value
-                                                )
-                                            }
+                                            onChange={(e) => handleSubpartChange(idx, "dead_line", e.target.value)}
                                         />
                                     </td>
                                     <td className="p-2">
                                         <CustomSelect
-                                            options={allUsers.map((u) => ({
-                                                label: u.full_name,
-                                                value: u.id,
-                                            }))}
+                                            options={allUsers.map((u) => ({label: u.full_name, value: u.id}))}
                                             value={sub.assigned_id}
-                                            onChange={(val) =>
-                                                handleSubpartChange(
-                                                    idx,
-                                                    "assigned_id",
-                                                    val
-                                                )
-                                            }
+                                            onChange={(val) => handleSubpartChange(idx, "assigned_id", val)}
                                             placeholder="Assign to"
                                         />
                                     </td>
@@ -327,11 +284,7 @@ export default function EditProjectModal({isOpen, onClose, project, onSave}) {
                                             type="number"
                                             value={sub.hours_elapsed}
                                             onChange={(e) =>
-                                                handleSubpartChange(
-                                                    idx,
-                                                    "hours_elapsed",
-                                                    Number(e.target.value)
-                                                )
+                                                handleSubpartChange(idx, "hours_elapsed", Number(e.target.value))
                                             }
                                         />
                                     </td>
@@ -339,13 +292,7 @@ export default function EditProjectModal({isOpen, onClose, project, onSave}) {
                                         <input
                                             type="checkbox"
                                             checked={sub.is_done}
-                                            onChange={(e) =>
-                                                handleSubpartChange(
-                                                    idx,
-                                                    "is_done",
-                                                    e.target.checked
-                                                )
-                                            }
+                                            onChange={(e) => handleSubpartChange(idx, "is_done", e.target.checked)}
                                         />
                                     </td>
                                     <td className="p-2 text-center">
@@ -365,7 +312,7 @@ export default function EditProjectModal({isOpen, onClose, project, onSave}) {
                     <Button variant="outline" onClick={onClose}>
                         Cancel
                     </Button>
-                    <Button variant="default" onClick={handleSubmit}>
+                    <Button variant="default" onClick={handleSubmit} className="bg-green-600 hover:bg-green-800">
                         Save Changes
                     </Button>
                 </div>

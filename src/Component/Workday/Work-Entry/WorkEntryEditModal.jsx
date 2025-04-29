@@ -1,199 +1,136 @@
-import React, {useState, useEffect} from "react";
-import {Dialog} from "@headlessui/react";
-import {toast} from "react-toastify";
-import axios from "axios";
-import {API_URL} from "@/config.js";
-import CustomSelect from "@/Component/Utils/CustomSelect.jsx"; // ✅ Import your CustomSelect
+// src/Component/Work-Entry/WorkEntryEditModal.jsx
+import React, {useState, useEffect} from 'react';
+import {Dialog} from '@headlessui/react';
+import CustomSelect from '@/Component/Utils/CustomSelect.jsx';
+import axios from 'axios';
+import {API_URL} from '@/config.js';
+import {toast} from 'react-toastify';
 
-const SEVERITY_OPTIONS = ["High", "Medium", "Low"];
+const SEVERITY_OPTIONS = ['High', 'Medium', 'Low'];
 
-export default function WorkEntryEditModal({isOpen, onClose, entry, onUpdated}) {
-    const [form, setForm] = useState({
-        project_name: entry.project_name || "",
-        project_subpart: entry.project_subpart || "",
-        hours_elapsed: entry.hours_elapsed || 0,
-        issues: Array.isArray(entry.issues)
-            ? entry.issues.map(i => ({issue: i.issue || "", severity: i.severity || "Medium"}))
-            : [],
-        is_done: entry.is_done || false,
-        assigned_by_name: "",
-        assigned_to_name: "",
-    });
+export default function WorkEntryEditModal({isOpen, onClose, entry = {}, onUpdated}) {
+    const [hoursElapsed, setHoursElapsed] = useState(0);
+    const [isDone, setIsDone] = useState(false);
+    const [issues, setIssues] = useState([]);
 
+    // initialize form state whenever a new entry is passed in
     useEffect(() => {
-        if (entry.assigned_by) fetchAssignedName(entry.assigned_by, "assigned_by_name");
-        if (entry.assigned_to) fetchAssignedName(entry.assigned_to, "assigned_to_name");
+        setHoursElapsed(entry.hours_elapsed ?? 0);
+        setIsDone(entry.is_done ?? false);
+        setIssues(Array.isArray(entry.issues) ? entry.issues : []);
     }, [entry]);
 
-    const fetchAssignedName = async (id, field) => {
-        try {
-            const res = await axios.get(`${API_URL}users/${id}`);
-            setForm(prev => ({...prev, [field]: res.data?.full_name || `Unknown (${id})`}));
-        } catch (err) {
-            console.error("Failed to fetch assigned user name:", err);
-        }
-    };
-
-    const handleChange = (e) => {
-        const {name, value, type, checked} = e.target;
-        setForm({...form, [name]: type === "checkbox" ? checked : value});
-    };
-
     const handleIssueChange = (idx, field, value) => {
-        const updatedIssues = [...form.issues];
-        updatedIssues[idx][field] = value;
-        setForm({...form, issues: updatedIssues});
+        const copy = [...issues];
+        copy[idx] = {...copy[idx], [field]: value};
+        setIssues(copy);
     };
 
-    const addIssueField = () => {
-        setForm({...form, issues: [...form.issues, {issue: "", severity: "Medium"}]});
+    const addIssue = () => {
+        setIssues([...issues, {issue: '', severity: 'Medium'}]);
     };
 
-    const removeIssueField = (idx) => {
-        const updatedIssues = form.issues.filter((_, i) => i !== idx);
-        setForm({...form, issues: updatedIssues});
+    const removeIssue = idx => {
+        setIssues(issues.filter((_, i) => i !== idx));
     };
 
-    const handleSubmit = async (e) => {
+    const handleSubmit = async e => {
         e.preventDefault();
-
-        if (form.hours_elapsed > 8) {
-            toast.error("Hours elapsed cannot exceed 8!");
+        if (hoursElapsed > 8) {
+            toast.error('Hours elapsed cannot exceed 8');
             return;
         }
-
         try {
             await axios.put(`${API_URL}work-day/update/${entry.id}`, {
-                project_name: form.project_name,
-                project_subpart: form.project_subpart,
-                hours_elapsed: parseFloat(form.hours_elapsed),
-                is_done: form.is_done,
-                issues: form.issues.filter(i => i.issue.trim()), // Only keep non-empty issues
+                hours_elapsed: parseFloat(hoursElapsed),
+                is_done: isDone,
+                issues: issues.filter(i => i.issue.trim() !== ''),
             });
-
-            toast.success("Work entry updated successfully!");
+            toast.success('Work entry updated');
             onUpdated();
             onClose();
         } catch (err) {
-            console.error("❌ Update failed:", err);
-            toast.error("Failed to update work entry");
+            console.error('Update failed', err);
+            toast.error(err.response?.data?.message || 'Failed to update work entry');
         }
     };
 
     if (!isOpen) return null;
-
     return (
         <Dialog open={isOpen} onClose={onClose} className="fixed inset-0 z-50 overflow-y-auto">
             <div className="flex items-center justify-center min-h-screen px-4">
                 <Dialog.Panel className="w-full max-w-lg bg-white p-6 rounded-lg shadow-xl">
-                    <Dialog.Title className="text-2xl font-semibold mb-6 text-gray-800">
-                        Edit Work Entry
-                    </Dialog.Title>
-
-                    <form onSubmit={handleSubmit} className="space-y-5">
-
-                        {/* Project Name */}
-                        <div>
-                            <label className="text-sm font-medium">Project Name:</label>
-                            <input
-                                type="text"
-                                name="project_name"
-                                value={form.project_name}
-                                onChange={handleChange}
-                                className="mt-1 block w-full px-3 py-2 border rounded-md"
-                            />
-                        </div>
-
-                        {/* Project Subpart */}
-                        <div>
-                            <label className="text-sm font-medium">Project Subpart:</label>
-                            <input
-                                type="text"
-                                name="project_subpart"
-                                value={form.project_subpart}
-                                onChange={handleChange}
-                                className="mt-1 block w-full px-3 py-2 border rounded-md"
-                            />
-                        </div>
-
+                    <Dialog.Title className="text-2xl font-semibold mb-4">Edit Work Entry</Dialog.Title>
+                    <form onSubmit={handleSubmit} className="space-y-4">
                         {/* Hours Elapsed */}
                         <div>
-                            <label className="text-sm font-medium">Hours Elapsed (max 8):</label>
+                            <label className="block text-sm font-medium mb-1">Hours Elapsed (max 8)</label>
                             <input
                                 type="number"
-                                name="hours_elapsed"
-                                min="0"
-                                max="8"
-                                step="0.1"
-                                value={form.hours_elapsed}
-                                onChange={handleChange}
-                                className="mt-1 block w-full px-3 py-2 border rounded-md"
+                                min={0}
+                                max={8}
+                                step={0.1}
+                                value={hoursElapsed}
+                                onChange={e => setHoursElapsed(e.target.value)}
+                                className="w-full px-3 py-2 border rounded-md"
+                                required
                             />
                         </div>
 
-                        {/* Issues with Severity */}
+                        {/* Is Done */}
+                        <div className="flex items-center space-x-2">
+                            <input
+                                id="isDone"
+                                type="checkbox"
+                                checked={isDone}
+                                onChange={e => setIsDone(e.target.checked)}
+                                className="h-4 w-4 text-blue-600"
+                            />
+                            <label htmlFor="isDone" className="text-sm">Mark as Done</label>
+                        </div>
+
+                        {/* Issues */}
                         <div>
-                            <label className="text-sm font-medium">Issues:</label>
-                            {form.issues.map((issueItem, idx) => (
-                                <div key={idx} className="flex flex-col md:flex-row gap-2 mb-3">
+                            <label className="block text-sm font-medium mb-2">Issues</label>
+                            {issues.map((it, idx) => (
+                                <div key={idx} className="flex gap-2 mb-2">
                                     <input
                                         type="text"
-                                        placeholder="Issue Description"
-                                        value={issueItem.issue}
-                                        onChange={(e) => handleIssueChange(idx, "issue", e.target.value)}
-                                        className="flex-1 px-3 py-2 border rounded-md"
+                                        placeholder="Description"
+                                        value={it.issue}
+                                        onChange={e => handleIssueChange(idx, 'issue', e.target.value)}
+                                        className="flex-1 px-3 py-2 border rounded-md text-sm"
                                     />
                                     <CustomSelect
                                         options={SEVERITY_OPTIONS}
-                                        value={issueItem.severity}
-                                        onChange={(value) => handleIssueChange(idx, "severity", value)}
+                                        value={it.severity}
+                                        onChange={val => handleIssueChange(idx, 'severity', val)}
+                                        className="w-32 text-sm"
                                     />
                                     <button
                                         type="button"
-                                        onClick={() => removeIssueField(idx)}
+                                        onClick={() => removeIssue(idx)}
                                         className="px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600 text-xs"
                                     >
-                                        X
+                                        ✕
                                     </button>
                                 </div>
                             ))}
                             <button
                                 type="button"
-                                onClick={addIssueField}
-                                className="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 text-sm mt-2"
+                                onClick={addIssue}
+                                className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 text-sm"
                             >
                                 + Add Issue
                             </button>
                         </div>
 
-                        {/* Is Done Checkbox */}
-                        <div className="flex items-center gap-2">
-                            <input
-                                type="checkbox"
-                                name="is_done"
-                                checked={form.is_done}
-                                onChange={handleChange}
-                                className="w-5 h-5"
-                            />
-                            <label className="text-sm font-medium">Mark as Done</label>
-                        </div>
-
-                        {/* Assigned By/Assigned To */}
-                        <div className="grid grid-cols-2 gap-4 text-sm text-gray-700">
-                            <div>
-                                <b>Assigned By:</b><br/>{form.assigned_by_name || "Self"}
-                            </div>
-                            <div>
-                                <b>Assigned To:</b><br/>{form.assigned_to_name || "Self"}
-                            </div>
-                        </div>
-
-                        {/* Buttons */}
-                        <div className="flex justify-end gap-4 mt-6">
+                        {/* Actions */}
+                        <div className="flex justify-end space-x-3 pt-4">
                             <button
                                 type="button"
                                 onClick={onClose}
-                                className="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400"
+                                className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
                             >
                                 Cancel
                             </button>
@@ -204,7 +141,6 @@ export default function WorkEntryEditModal({isOpen, onClose, entry, onUpdated}) 
                                 Save Changes
                             </button>
                         </div>
-
                     </form>
                 </Dialog.Panel>
             </div>

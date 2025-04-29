@@ -87,7 +87,22 @@ export default function ProjectListTable() {
         {accessor: "project_name", header: "Project Name"},
         {accessor: "total_estimate_hrs", header: "Estimated Hrs"},
         {accessor: "total_elapsed_hrs", header: "Elapsed Hrs"},
-        {accessor: "assigned_names", header: "Assigned Employees"},
+        {
+            accessor: "assigned_names",
+            header: "Assigned Employees",
+            render: (row) => (
+                <div className="flex flex-wrap gap-2">
+                    {row.assigned_names.map((name, i) => (
+                        <span
+                            key={i}
+                            className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full text-xs"
+                        >
+            {name}
+          </span>
+                    ))}
+                </div>
+            ),
+        },
         {
             accessor: "project_subparts",
             header: "Project Subparts",

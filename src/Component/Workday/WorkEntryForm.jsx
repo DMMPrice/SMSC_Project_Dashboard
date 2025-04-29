@@ -106,7 +106,7 @@ export default function WorkEntryForm({toggleModal, fetchEntries}) {
             });
 
             await fetchEntries();
-            toast.success("✅ Work Entry submitted!");
+            toast.success("Work Entry submitted!");
             toggleModal();
         } catch (err) {
             console.error(err);
