@@ -14,6 +14,7 @@ import {toast} from "react-toastify";
 export default function MassAttendanceEntry() {
     const [employees, setEmployees] = useState([]);
     const [rows, setRows] = useState([]);
+    const [loading, setLoading] = useState(false);
 
     // load employee list once
     useEffect(() => {
@@ -33,29 +34,30 @@ export default function MassAttendanceEntry() {
         ]);
     };
 
-    const addRow = () =>
+    const addRow = () => {
+        if (rows.length >= 10) {
+            toast.error("You can add up to 10 rows only");
+            return;
+        }
         setRows((r) => [
             ...r,
             {id: Date.now(), employee_id: "", date: "", in_time: "", out_time: ""},
         ]);
+    };
 
-    const deleteRow = (idx) =>
-        setRows((r) => r.filter((_, i) => i !== idx));
+    const deleteRow = (idx) => setRows((r) => r.filter((_, i) => i !== idx));
 
     const updateRow = (idx, field, value) =>
-        setRows((r) =>
-            r.map((row, i) => (i === idx ? {...row, [field]: value} : row))
-        );
+        setRows((r) => r.map((row, i) => (i === idx ? {...row, [field]: value} : row)));
 
     const handleSubmit = async () => {
-        // prepare payload
+        setLoading(true);
         const payload = rows.map((r) => ({
             employee_id: r.employee_id,
             date: r.date,
             in_time: r.in_time,
             out_time: r.out_time,
         }));
-
         try {
             await axios.post(`${API_URL}attendance/mass-entry`, payload);
             toast.success("Attendance submitted!");
@@ -63,6 +65,8 @@ export default function MassAttendanceEntry() {
         } catch (err) {
             console.error(err);
             toast.error("Submission failed. Please try again.");
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -84,7 +88,6 @@ export default function MassAttendanceEntry() {
                     <tbody>
                     {rows.map((row, idx) => (
                         <tr key={row.id} className="hover:bg-gray-50">
-                            {/* Employee Select */}
                             <td className="p-2">
                                 <CustomSelect
                                     options={employees.map((e) => ({
@@ -94,10 +97,9 @@ export default function MassAttendanceEntry() {
                                     value={row.employee_id}
                                     onChange={(v) => updateRow(idx, "employee_id", v)}
                                     placeholder="Select Employee"
+                                    disabled={loading}
                                 />
                             </td>
-
-                            {/* Date */}
                             <td className="p-2">
                                 <DatePicker
                                     value={row.date ? dayjs(row.date) : null}
@@ -105,37 +107,31 @@ export default function MassAttendanceEntry() {
                                         updateRow(idx, "date", d ? d.format("YYYY-MM-DD") : "")
                                     }
                                     slots={{textField: TextField}}
+                                    disabled={loading}
                                 />
                             </td>
-
-                            {/* In Time */}
                             <td className="p-2">
                                 <TimePicker
                                     value={row.in_time ? dayjs(row.in_time, "HH:mm") : null}
-                                    onChange={(t) =>
-                                        updateRow(idx, "in_time", t ? t.format("HH:mm") : "")
-                                    }
+                                    onChange={(t) => updateRow(idx, "in_time", t ? t.format("HH:mm") : "")}
                                     slots={{textField: TextField}}
+                                    disabled={loading}
                                 />
                             </td>
-
-                            {/* Out Time */}
                             <td className="p-2">
                                 <TimePicker
                                     value={row.out_time ? dayjs(row.out_time, "HH:mm") : null}
-                                    onChange={(t) =>
-                                        updateRow(idx, "out_time", t ? t.format("HH:mm") : "")
-                                    }
+                                    onChange={(t) => updateRow(idx, "out_time", t ? t.format("HH:mm") : "")}
                                     slots={{textField: TextField}}
+                                    disabled={loading}
                                 />
                             </td>
-
-                            {/* Delete */}
                             <td className="p-2 text-center">
                                 <Button
                                     size="sm"
                                     variant="destructive"
                                     onClick={() => deleteRow(idx)}
+                                    disabled={loading}
                                 >
                                     Delete
                                 </Button>
@@ -147,10 +143,12 @@ export default function MassAttendanceEntry() {
             </LocalizationProvider>
 
             <div className="flex gap-4">
-                <Button onClick={addRow} variant="outline">
+                <Button onClick={addRow} variant="outline" disabled={loading || rows.length >= 10}>
                     + Add Row
                 </Button>
-                <Button onClick={handleSubmit}>Submit Attendance</Button>
+                <Button onClick={handleSubmit} disabled={loading}>
+                    {loading ? "Submitting..." : "Submit Attendance"}
+                </Button>
             </div>
         </div>
     );

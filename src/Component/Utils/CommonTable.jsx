@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, {useState, useEffect, useMemo} from "react";
 import {
     Table,
     TableBody,
@@ -9,8 +9,8 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
-import { Button } from "@/components/ui/Button";
-import MultiSelectFilter from "@/Component/Utils/MultiSelectFilter.jsx"; // 👈 Import
+import {Button} from "@/components/ui/Button";
+import MultiSelectFilter from "@/Component/Utils/MultiSelectFilter.jsx";
 
 export default function CommonTable({
                                         title,
@@ -127,7 +127,7 @@ export default function CommonTable({
                 .join(",")
         );
         const csv = [headers.join(","), ...rowsCsv].join("\n");
-        const blob = new Blob([csv], { type: "text/csv" });
+        const blob = new Blob([csv], {type: "text/csv"});
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
@@ -188,21 +188,27 @@ export default function CommonTable({
                                         <MultiSelectFilter
                                             options={col.options || []}
                                             selectedValues={columnFilters[col.accessor] || []}
-                                            onChange={(selected) => setColumnFilters((prev) => ({ ...prev, [col.accessor]: selected }))}
+                                            onChange={(selected) => setColumnFilters((prev) => ({
+                                                ...prev,
+                                                [col.accessor]: selected
+                                            }))}
                                         />
                                     ) : (
                                         <input
                                             type="text"
                                             placeholder={`Filter ${col.header}`}
                                             value={columnFilters[col.accessor] || ""}
-                                            onChange={(e) => setColumnFilters((prev) => ({ ...prev, [col.accessor]: e.target.value }))}
+                                            onChange={(e) => setColumnFilters((prev) => ({
+                                                ...prev,
+                                                [col.accessor]: e.target.value
+                                            }))}
                                             className="w-full p-1 text-xs border rounded"
                                         />
                                     )}
                                 </TableHead>
                             ))}
-                            {canEdit && <TableHead />}
-                            {canDelete && <TableHead />}
+                            {canEdit && <TableHead/>}
+                            {canDelete && <TableHead/>}
                         </TableRow>
                     </TableHeader>
 
