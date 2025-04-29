@@ -1,3 +1,4 @@
+// src/Component/Project/AddProjectModal.jsx
 import React, {useState, useEffect} from "react";
 import {Dialog} from "@headlessui/react";
 import {toast} from "react-toastify";
@@ -7,40 +8,45 @@ import InputField from "@/Component/Utils/InputField.jsx";
 import BasicDatePicker from "@/Component/Utils/DateTimePicker.jsx";
 import {API_URL} from "@/config.js";
 
+const EMPTY_FORM = {
+    project_name: "",
+    total_estimate_hrs: 0,
+    total_elapsed_hrs: 0,
+    assigned_ids: [],
+    project_subparts: [],
+    is_completed: false,
+    created_at: null,
+};
+
 export default function AddProjectModal({isOpen, onClose, onAdded}) {
     const [employees, setEmployees] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [form, setForm] = useState(EMPTY_FORM);
 
-    const [form, setForm] = useState({
-        project_name: "",
-        total_estimate_hrs: 0,
-        total_elapsed_hrs: 0,
-        assigned_ids: [],
-        project_subparts: [],
-        is_completed: false,
-        created_at: null,
-    });
-
-    const fetchEmployees = async () => {
-        try {
-            const res = await axios.get(`${API_URL}users/`);
-            const data = res.data || [];
-            setEmployees(
-                data.map((emp) => ({
-                    label: emp.full_name,
-                    value: emp.id,
-                }))
-            );
-        } catch (err) {
-            console.error("Failed to fetch employees:", err);
-            toast.error("Failed to load employees");
-        }
+    // reset form when modal closes
+    const closeAndReset = () => {
+        setForm(EMPTY_FORM);
+        onClose();
     };
 
+    // load employees whenever the modal opens
     useEffect(() => {
-        if (isOpen) {
-            fetchEmployees();
-        }
+        if (!isOpen) return;
+        (async function fetchEmployees() {
+            try {
+                const res = await axios.get(`${API_URL}users/`);
+                const data = res.data || [];
+                setEmployees(
+                    data.map((emp) => ({
+                        label: emp.full_name,
+                        value: emp.id,
+                    }))
+                );
+            } catch (err) {
+                console.error("Failed to fetch employees:", err);
+                toast.error("Failed to load employees");
+            }
+        })();
     }, [isOpen]);
 
     const handleSubmit = async () => {
@@ -52,16 +58,19 @@ export default function AddProjectModal({isOpen, onClose, onAdded}) {
                 total_elapsed_hrs: form.total_elapsed_hrs,
                 assigned_ids: form.assigned_ids,
                 project_subparts: form.project_subparts,
-                created_by: JSON.parse(localStorage.getItem("userData"))?.id || 1,
+                created_by:
+                    JSON.parse(localStorage.getItem("userData"))?.id || undefined,
                 client_id: 1,
-                created_at: form.created_at ? form.created_at.format("YYYY-MM-DD") : undefined,
+                created_at: form.created_at
+                    ? form.created_at.format("YYYY-MM-DD")
+                    : undefined,
             });
 
             toast.success("Project created successfully!");
             onAdded();
-            onClose();
+            closeAndReset();
         } catch (err) {
-            console.error(err);
+            console.error("Failed to create project:", err);
             toast.error("Failed to create project.");
         } finally {
             setLoading(false);
@@ -106,6 +115,7 @@ export default function AddProjectModal({isOpen, onClose, onAdded}) {
                         Add New Project
                     </Dialog.Title>
 
+                    {/* Basic Info */}
                     <div className="grid grid-cols-2 gap-6">
                         <InputField
                             label="Project Name"
@@ -119,7 +129,10 @@ export default function AddProjectModal({isOpen, onClose, onAdded}) {
                             type="number"
                             value={form.total_estimate_hrs}
                             onChange={(e) =>
-                                setForm((p) => ({...p, total_estimate_hrs: e.target.value}))
+                                setForm((p) => ({
+                                    ...p,
+                                    total_estimate_hrs: Number(e.target.value),
+                                }))
                             }
                         />
                         <InputField
@@ -127,38 +140,37 @@ export default function AddProjectModal({isOpen, onClose, onAdded}) {
                             type="number"
                             value={form.total_elapsed_hrs}
                             onChange={(e) =>
-                                setForm((p) => ({...p, total_elapsed_hrs: e.target.value}))
+                                setForm((p) => ({
+                                    ...p,
+                                    total_elapsed_hrs: Number(e.target.value),
+                                }))
                             }
                         />
                         <BasicDatePicker
                             label="Project Start Date"
                             value={form.created_at}
-                            onChange={(val) =>
-                                setForm((p) => ({...p, created_at: val}))
-                            }
+                            onChange={(val) => setForm((p) => ({...p, created_at: val}))}
                         />
                     </div>
 
                     {/* Assigned Employees */}
                     <div className="mt-6">
-                        <h3 className="text-lg font-semibold mb-2">Assigned Employees</h3>
-                        <div className="flex gap-4">
-                            <CustomSelect
-                                options={employees
-                                    .filter((e) => !form.assigned_ids.includes(e.value))
-                                    .map((e) => ({label: e.label, value: e.value}))}
-                                value=""
-                                onChange={(selected) => {
-                                    setForm((prev) => ({
-                                        ...prev,
-                                        assigned_ids: [...prev.assigned_ids, selected.value],
-                                    }));
-                                }}
-                                placeholder="Select Employee to Assign"
-                            />
-                        </div>
-
-                        {/* Tags */}
+                        <h3 className="text-lg font-semibold mb-2">
+                            Assigned Employees
+                        </h3>
+                        <CustomSelect
+                            options={employees.filter(
+                                (e) => !form.assigned_ids.includes(e.value)
+                            )}
+                            value={null}
+                            onChange={(val) =>
+                                setForm((prev) => ({
+                                    ...prev,
+                                    assigned_ids: [...prev.assigned_ids, val],
+                                }))
+                            }
+                            placeholder="Select Employee to Assign"
+                        />
                         <div className="flex flex-wrap gap-2 mt-2">
                             {form.assigned_ids.map((id) => {
                                 const emp = employees.find((e) => e.value === id);
@@ -169,15 +181,18 @@ export default function AddProjectModal({isOpen, onClose, onAdded}) {
                                     >
                                         <span className="mr-2">{emp?.label || `ID-${id}`}</span>
                                         <button
-                                            className="text-red-600"
+                                            type="button"
+                                            className="text-red-600 font-bold"
                                             onClick={() =>
                                                 setForm((prev) => ({
                                                     ...prev,
-                                                    assigned_ids: prev.assigned_ids.filter((eid) => eid !== id),
+                                                    assigned_ids: prev.assigned_ids.filter(
+                                                        (eid) => eid !== id
+                                                    ),
                                                 }))
                                             }
                                         >
-                                            &times;
+                                            ×
                                         </button>
                                     </div>
                                 );
@@ -187,8 +202,9 @@ export default function AddProjectModal({isOpen, onClose, onAdded}) {
 
                     {/* Project Subparts */}
                     <div className="mt-8">
-                        <h3 className="text-lg font-semibold mb-2">Project Subparts</h3>
-
+                        <h3 className="text-lg font-semibold mb-2">
+                            Project Subparts
+                        </h3>
                         <div className="overflow-x-auto">
                             <table className="w-full table-auto border">
                                 <thead>
@@ -210,7 +226,11 @@ export default function AddProjectModal({isOpen, onClose, onAdded}) {
                                                 className="border p-2 rounded w-full"
                                                 value={sp.project_subpart_name}
                                                 onChange={(e) =>
-                                                    handleSubpartChange(idx, "project_subpart_name", e.target.value)
+                                                    handleSubpartChange(
+                                                        idx,
+                                                        "project_subpart_name",
+                                                        e.target.value
+                                                    )
                                                 }
                                             />
                                         </td>
@@ -226,15 +246,10 @@ export default function AddProjectModal({isOpen, onClose, onAdded}) {
                                         </td>
                                         <td className="p-2 border">
                                             <CustomSelect
-                                                options={employees.map((e) => ({
-                                                    label: e.label,
-                                                    value: e.value,
-                                                }))}
-                                                value={
-                                                    employees.find((e) => e.value === sp.assigned_id)?.label || ""
-                                                }
-                                                onChange={(selected) =>
-                                                    handleSubpartChange(idx, "assigned_id", selected.value)
+                                                options={employees}
+                                                value={sp.assigned_id}
+                                                onChange={(val) =>
+                                                    handleSubpartChange(idx, "assigned_id", val)
                                                 }
                                             />
                                         </td>
@@ -244,7 +259,11 @@ export default function AddProjectModal({isOpen, onClose, onAdded}) {
                                                 className="border p-2 rounded w-full"
                                                 value={sp.hours_elapsed}
                                                 onChange={(e) =>
-                                                    handleSubpartChange(idx, "hours_elapsed", e.target.value)
+                                                    handleSubpartChange(
+                                                        idx,
+                                                        "hours_elapsed",
+                                                        Number(e.target.value)
+                                                    )
                                                 }
                                             />
                                         </td>
@@ -259,6 +278,7 @@ export default function AddProjectModal({isOpen, onClose, onAdded}) {
                                         </td>
                                         <td className="p-2 border text-center">
                                             <button
+                                                type="button"
                                                 className="text-red-600 font-bold"
                                                 onClick={() => removeSubpart(idx)}
                                             >
@@ -272,6 +292,7 @@ export default function AddProjectModal({isOpen, onClose, onAdded}) {
 
                             <div className="mt-4">
                                 <button
+                                    type="button"
                                     onClick={addSubpart}
                                     className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
                                 >
@@ -284,12 +305,14 @@ export default function AddProjectModal({isOpen, onClose, onAdded}) {
                     {/* Modal Actions */}
                     <div className="mt-6 flex justify-end gap-4">
                         <button
+                            type="button"
                             className="px-4 py-2 bg-gray-400 rounded hover:bg-gray-500"
-                            onClick={onClose}
+                            onClick={closeAndReset}
                         >
                             Cancel
                         </button>
                         <button
+                            type="button"
                             className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
                             onClick={handleSubmit}
                             disabled={loading}

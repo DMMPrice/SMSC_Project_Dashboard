@@ -43,7 +43,7 @@ export default function CustomSelect({
 
             {/* dropdown */}
             {isOpen && (
-                <ul className="absolute z-50 mt-1 w-full bg-white border rounded-md shadow-lg max-h-60 overflow-auto">
+                <ul className="absolute z-50 mt-1 w-full bg-white border rounded-md shadow-lg max-h-60 overflow-y-auto">
                     {normalized.length > 0 ? (
                         normalized.map((opt, i) => (
                             <li
