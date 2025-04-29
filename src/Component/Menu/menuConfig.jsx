@@ -15,6 +15,7 @@ import {IoPeopleSharp} from "react-icons/io5";
 import {BsTextParagraph} from "react-icons/bs";
 import {GoGraph} from "react-icons/go";
 import {VscGraph} from "react-icons/vsc";
+import {IoKeyOutline} from "react-icons/io5";
 
 const menuItems = [
     {
@@ -41,6 +42,12 @@ const menuItems = [
                 icon: <FaUserPlus className="h-6 w-6 text-yellow-600"/>,
                 allowedRoles: ["Admin", "Manager", "Super Admin"],
             },
+            {
+                title: "Reset Password",
+                path: "/employees/reset-password",
+                icon: <IoKeyOutline className="h-6 w-6 text-blue-600"/>,
+                allowedRoles: ["Admin", "Manager", "Super Admin", "Attendance Team", "Employee"],
+            }
         ],
     },
     {

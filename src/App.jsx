@@ -24,6 +24,7 @@ import ActiveProject from "./Component/Project/ActiveProjectList/Page.jsx";
 import ArchivedProject from "./Component/Project/ArchivedProjectList/Page.jsx";
 import ComingSoon from "@/Component/Utils/ComingSoon.jsx";
 import {ToastContainer} from "react-toastify";
+import ResetPasswordForm from "@/Component/Employee-Details/Reset-Password/Page.jsx";
 
 
 const PrivateRoute = ({element, isAuthenticated}) => {
@@ -67,7 +68,8 @@ function App() {
                     <Route path="/employees/profile" element={<EmployeeProfile/>} isAuthenticated={isAuthenticated}/>
                     <Route path="/employees/all"
                            element={<PrivateRoute element={<EmployeeListTable/>} isAuthenticated={isAuthenticated}/>}/>
-
+                    <Route path="/employees/reset-password"
+                           element={<PrivateRoute element={<ResetPasswordForm/>} isAuthenticated={isAuthenticated}/>}/>/
                     {/* Work Day Routes */}
 
                     <Route path="/work-entries-employee"
