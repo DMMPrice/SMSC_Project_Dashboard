@@ -1,58 +1,65 @@
-// src/Component/Utils/CustomSelect.jsx
 import React, {useState, useRef, useEffect} from "react";
 
-function CustomSelect({
-                          options = [],
-                          value = "",
-                          onChange,
-                          placeholder = "Select an option",
-                          className = "",
-                      }) {
-    const [isOpen, setIsOpen] = useState(false);
-    const selectRef = useRef(null);
+export default function CustomSelect({
+                                         options = [],             // array of strings or { label, value }
+                                         value = null,             // the currently selected value
+                                         onChange,                 // receives the new `value`
+                                         placeholder = "Select…",
+                                         className = "",
+                                     }) {
+    // normalize all options to { label,value }
+    const normalized = options.map((opt) =>
+        typeof opt === "object"
+            ? {label: opt.label, value: opt.value}
+            : {label: opt, value: opt}
+    );
 
+    const [isOpen, setIsOpen] = useState(false);
+    const ref = useRef(null);
+
+    // close on outside click
     useEffect(() => {
-        const handleClickOutside = (e) => {
-            if (selectRef.current && !selectRef.current.contains(e.target)) {
+        const onBodyClick = (e) => {
+            if (ref.current && !ref.current.contains(e.target)) {
                 setIsOpen(false);
             }
         };
-        document.addEventListener("mousedown", handleClickOutside);
-        return () => document.removeEventListener("mousedown", handleClickOutside);
+        document.addEventListener("mousedown", onBodyClick);
+        return () => document.removeEventListener("mousedown", onBodyClick);
     }, []);
 
+    // find the label for the current `value`
+    const selected = normalized.find((o) => o.value === value);
+
     return (
-        <div
-            ref={selectRef}
-            className={`relative overflow-visible ${className}`}   // ← allow overflow
-        >
+        <div ref={ref} className={`relative ${className}`}>
             {/* trigger */}
             <div
-                className="w-full px-4 py-2 border rounded-md bg-white shadow-sm cursor-pointer hover:shadow-md"
+                className="w-full px-4 py-2 border rounded-md bg-white cursor-pointer"
                 onClick={() => setIsOpen((o) => !o)}
             >
-                {value || placeholder}
+                {selected ? selected.label : placeholder}
             </div>
 
             {/* dropdown */}
             {isOpen && (
-                <ul className="absolute z-50 mt-2 w-full bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto">
-                    {options.length ? (
-                        options.map((opt, i) => (
+                <ul className="absolute z-50 mt-1 w-full bg-white border rounded-md shadow-lg max-h-60 overflow-y-auto">
+                    {normalized.length > 0 ? (
+                        normalized.map((opt, i) => (
                             <li
                                 key={i}
                                 className="px-4 py-2 cursor-pointer hover:bg-gray-100"
                                 onClick={() => {
-                                    onChange(opt);
+                                    onChange(opt.value);
                                     setIsOpen(false);
                                 }}
                             >
-                                {opt}
+                                {opt.label}
                             </li>
                         ))
                     ) : (
                         <li className="px-4 py-2 text-gray-500 text-center">
-                            No options available
+                            No options
                         </li>
                     )}
                 </ul>
@@ -60,5 +67,3 @@ function CustomSelect({
         </div>
     );
 }
-
-export default CustomSelect;

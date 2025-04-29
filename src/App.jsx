@@ -9,19 +9,22 @@ import {
 
 import "./App.css";
 import NavBar from "./Component/NavBar/NavBar";
-import Footer from "./Component/Footer/Footer";
 import LandingPage from "./Component/LandingPage/LandingPage";
 import Error404 from "./Component/Utils/error";
 import Menu from "./Component/Menu/Menu";
 import SubMenu from "./Component/Menu/SubMenu.jsx"
 import EmployeeProfile from "./Component/Employee-Details/EmployeeProfile/EmployeeProfile";
 import AddEmployeeForm from "./Component/Employee-Details/AddEmployeeForm/AddEmployeeForm";
-import WorkEntryTable from "./Component/Workday/Work-Entry-Employee/WorkEntryTable";
+import WorkEntryTable from "./Component/Workday/Work-Entry/Page.jsx";
 import EmployeeListTable from "./Component/Employee-Details/EmployeeListTable/EmployeeListTable";
 import IndividualWorkEntryTable from "./Component/Workday/Work-Entry/Page.jsx";
 import ManualAttendanceTable from "./Component/Attendance/ManualAttendanceTable/ManualAttendanceTable";
+import MassAttendancePage from "./Component/Attendance/MassEntry/Page.jsx";
+import ActiveProject from "./Component/Project/ActiveProjectList/Page.jsx";
+import ArchivedProject from "./Component/Project/ArchivedProjectList/Page.jsx";
 import ComingSoon from "@/Component/Utils/ComingSoon.jsx";
 import {ToastContainer} from "react-toastify";
+import ResetPasswordForm from "@/Component/Employee-Details/Reset-Password/Page.jsx";
 
 
 const PrivateRoute = ({element, isAuthenticated}) => {
@@ -55,7 +58,6 @@ function App() {
                             <LandingPage setIsAuthenticated={setIsAuthenticated}/>}
                     />
 
-
                     <Route path="/menu" element={<PrivateRoute element={<Menu/>} isAuthenticated={isAuthenticated}/>}/>
                     <Route path="/menu/:menuKey"
                            element={<PrivateRoute element={<SubMenu/>} isAuthenticated={isAuthenticated}/>}/>\
@@ -66,7 +68,8 @@ function App() {
                     <Route path="/employees/profile" element={<EmployeeProfile/>} isAuthenticated={isAuthenticated}/>
                     <Route path="/employees/all"
                            element={<PrivateRoute element={<EmployeeListTable/>} isAuthenticated={isAuthenticated}/>}/>
-
+                    <Route path="/employees/reset-password"
+                           element={<PrivateRoute element={<ResetPasswordForm/>} isAuthenticated={isAuthenticated}/>}/>/
                     {/* Work Day Routes */}
 
                     <Route path="/work-entries-employee"
@@ -79,6 +82,18 @@ function App() {
                     <Route path="/attendance"
                            element={<PrivateRoute element={<ManualAttendanceTable/>}
                                                   isAuthenticated={isAuthenticated}/>}/>
+                    <Route path="/attendance/mass-entry" element={<MassAttendancePage/>}
+                           isAuthenticated={isAuthenticated}/>
+
+                    {/* Project Routes */}
+
+                    <Route path="/projects/active"
+                           element={<PrivateRoute element={<ActiveProject/>} isAuthenticated={isAuthenticated}/>}/>
+
+                    <Route path="/projects/achived"
+                           element={<PrivateRoute element={<ArchivedProject/>} isAuthenticated={isAuthenticated}/>}/>
+
+                    {/* Dev Routes */}
                     <Route
                         path="/dev"
                         element={<PrivateRoute element={<ComingSoon/>} isAuthenticated={isAuthenticated}/>}

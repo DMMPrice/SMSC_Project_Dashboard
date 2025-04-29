@@ -5,18 +5,17 @@ import {
     MdOutlineSpellcheck,
     MdPresentToAll,
     MdFormatListBulletedAdd,
-    MdOutlineViewAgenda,
     MdIncompleteCircle,
 } from "react-icons/md";
 import {
     FaUserPlus,
-    FaUserEdit,
 } from "react-icons/fa";
 import {CgProfile} from "react-icons/cg";
 import {IoPeopleSharp} from "react-icons/io5";
 import {BsTextParagraph} from "react-icons/bs";
 import {GoGraph} from "react-icons/go";
 import {VscGraph} from "react-icons/vsc";
+import {IoKeyOutline} from "react-icons/io5";
 
 const menuItems = [
     {
@@ -43,6 +42,12 @@ const menuItems = [
                 icon: <FaUserPlus className="h-6 w-6 text-yellow-600"/>,
                 allowedRoles: ["Admin", "Manager", "Super Admin"],
             },
+            {
+                title: "Reset Password",
+                path: "/employees/reset-password",
+                icon: <IoKeyOutline className="h-6 w-6 text-blue-600"/>,
+                allowedRoles: ["Admin", "Manager", "Super Admin", "Attendance Team", "Employee"],
+            }
         ],
     },
     {
@@ -52,16 +57,10 @@ const menuItems = [
         allowedRoles: ["Admin", "Manager", "Employee", "Super Admin", "Attendance Team"],
         submenu: [
             {
-                title: "Submit Entry",
+                title: "Work Entries",
                 path: `/work-entry`,
                 icon: <MdFormatListBulletedAdd className="h-6 w-6 text-indigo-600"/>,
                 allowedRoles: ["Admin", "Manager", "Employee", "Super Admin", "Attendance Team"],
-            },
-            {
-                title: "View All Entries",
-                path: "/work-entries-employee",
-                icon: <MdOutlineViewAgenda className="h-6 w-6 text-indigo-600"/>,
-                allowedRoles: ["Admin", "Manager", "Super Admin"],
             },
         ],
     },
@@ -72,33 +71,39 @@ const menuItems = [
         allowedRoles: ["Admin", "Attendance Team", "Manager", "Super Admin", "Employee"],
         submenu: [
             {
-                title: "Fill Attendance",
+                title: "View All Entries",
                 path: "/attendance",
                 icon: <MdPresentToAll className="h-6 w-6 text-green-600"/>,
                 allowedRoles: ["Admin", "Attendance Team", "Manager", "Super Admin", "Employee"],
             },
+            {
+                title: "Add Mass Attendance",
+                path: '/attendance/mass-entry',
+                icon: <MdFormatListBulletedAdd className="h-6 w-6 text-green-600"/>,
+                allowedRoles: ["Admin", "Attendance Team", "Manager", "Super Admin"],
+            }
         ],
     },
     {
         key: "project-status",
-        title: "Project Status",
+        title: "Project Section",
         icon: <VscGraph className="h-10 w-10 text-red-600"/>,
-        allowedRoles: ["Super Admin"],
+        allowedRoles: ["Super Admin", "Admin", "Employee", "Attendance Team", "Manager"],
         submenu: [
             {
-                title: "View All Projects",
-                path: "/dev",
+                title: "View Active Projects",
+                path: "/projects/active",
                 icon: <BsTextParagraph className="h-6 w-6 text-red-600"/>,
-                allowedRoles: ["Super Admin"],
+                allowedRoles: ["Super Admin", "Admin", "Employee", "Attendance Team", "Manager"],
             },
             {
-                title: "Ongoing Projects",
-                path: "/dev",
+                title: "Archive Projects",
+                path: "/projects/achived",
                 icon: <GoGraph className="h-6 w-6 text-red-600"/>,
-                allowedRoles: ["Super Admin"],
+                allowedRoles: ["Super Admin", "Admin", "Employee", "Attendance Team", "Manager"],
             },
             {
-                title: "Completed Projects",
+                title: "Billing Status",
                 path: "/dev",
                 icon: <MdIncompleteCircle className="h-6 w-6 text-red-600"/>,
                 allowedRoles: ["Super Admin"],

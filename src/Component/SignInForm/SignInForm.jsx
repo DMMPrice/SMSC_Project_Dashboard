@@ -1,8 +1,10 @@
+// src/Component/Utils/SignInForm.jsx
 import React, {useState} from "react";
 import {useNavigate} from "react-router-dom";
 import {Button} from "@/components/ui/button.tsx";
 import InputField from "../Utils/InputField";
 import {API_URL} from "@/config.js";
+import {toast} from "react-toastify";  // ← import toast
 
 const SignInForm = ({setIsAuthenticated}) => {
     const [email, setEmail] = useState("");         // ✅ using email
@@ -26,17 +28,25 @@ const SignInForm = ({setIsAuthenticated}) => {
             const data = await response.json();
 
             if (response.ok) {
-                // ✅ Save entire response in one object
+                // save user data
                 localStorage.setItem("userData", JSON.stringify(data));
+                // also save credentials for local-old-password check
+                localStorage.setItem(
+                    "userCredentials", JSON.stringify({email, password})
+                );
+                // show success toast
+                toast.success("Logged in successfully!");
 
                 setIsAuthenticated(true);
                 navigate("/menu");
             } else {
                 setError(data.message || "Invalid credentials");
+                toast.error(data.message || "Invalid credentials");  // optional error toast
                 setIsAuthenticated(false);
             }
         } catch (err) {
             setError("Something went wrong. Please try again.");
+            toast.error("Something went wrong. Please try again.");  // error toast
         } finally {
             setLoading(false);
         }
@@ -48,7 +58,9 @@ const SignInForm = ({setIsAuthenticated}) => {
                 onSubmit={handleSubmit}
                 className="max-w-sm mx-auto p-6 bg-transparent rounded-lg flex flex-col gap-4 w-[350px]"
             >
-                <h2 className="text-xl font-semibold text-center text-gray-700">Sign In</h2>
+                <h2 className="text-xl font-semibold text-center text-gray-700">
+                    Sign In
+                </h2>
 
                 <InputField
                     label="Email"
@@ -64,7 +76,9 @@ const SignInForm = ({setIsAuthenticated}) => {
                     onChange={(e) => setPassword(e.target.value)}
                 />
 
-                {error && <p className="text-red-500 text-sm text-center">{error}</p>}
+                {error && (
+                    <p className="text-red-500 text-sm text-center">{error}</p>
+                )}
 
                 <Button
                     type="submit"
