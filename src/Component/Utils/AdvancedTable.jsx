@@ -1,4 +1,5 @@
-import React, {useState, useEffect, useMemo} from "react";
+// src/Component/Utils/AdvancedTable.jsx
+import React, {useState, useMemo, useEffect} from "react";
 import {
     Table,
     TableBody,
@@ -10,6 +11,8 @@ import {
     TableRow,
 } from "@/components/ui/table";
 import {Button} from "@/components/ui/Button";
+import MultiSelectFilter from "@/Component/Utils/MultiSelectFilter.jsx";
+import {FaEye, FaEdit, FaTrashAlt} from "react-icons/fa";
 
 export default function AdvancedTable({
                                           title,
@@ -22,114 +25,101 @@ export default function AdvancedTable({
                                           deleteRoles = [],
                                           onEdit = null,
                                           onDelete = null,
-                                          onView = null,    // ✅ now accepting onView
+                                          onView = null,            // <-- support view callback
                                       }) {
     const [searchTerm, setSearchTerm] = useState("");
     const [columnFilters, setColumnFilters] = useState({});
     const [currentPage, setCurrentPage] = useState(1);
     const [sortBy, setSortBy] = useState(null);
     const [sortDir, setSortDir] = useState("asc");
-    const itemsPerPage = 10;
+    const itemsPerPage = 20;
 
-    const handleColumnFilterChange = (accessor, value) => {
-        setColumnFilters((prev) => ({...prev, [accessor]: value}));
+    // 1. Reset all state
+    const handleReset = () => {
+        setSearchTerm("");
+        setColumnFilters({});
+        setSortBy(null);
+        setSortDir("asc");
+        setCurrentPage(1);
     };
 
+    // 2. Global + column filters
     const filtered = useMemo(() => {
-        let filteredData = data;
-
+        let fd = data;
         if (searchTerm) {
-            const term = searchTerm.toLowerCase();
-            filteredData = filteredData.filter((row) =>
+            const t = searchTerm.toLowerCase();
+            fd = fd.filter((row) =>
                 columns.some((col) => {
-                    const val = row[col.accessor];
-                    if (Array.isArray(val)) {
-                        return val.some((v) => v.toString().toLowerCase().includes(term));
-                    }
-                    return val != null && val.toString().toLowerCase().includes(term);
+                    const v = row[col.accessor];
+                    return v != null && v.toString().toLowerCase().includes(t);
                 })
             );
         }
-
-        Object.keys(columnFilters).forEach((accessor) => {
-            const filterValue = columnFilters[accessor]?.toLowerCase();
-            if (filterValue) {
-                filteredData = filteredData.filter((row) => {
-                    const val = row[accessor];
-                    if (Array.isArray(val)) {
-                        return val.some((v) => v.toString().toLowerCase().includes(filterValue));
-                    }
-                    return val != null && val.toString().toLowerCase().includes(filterValue);
-                });
-            }
+        Object.entries(columnFilters).forEach(([acc, f]) => {
+            if (!f) return;
+            const def = columns.find((c) => c.accessor === acc);
+            fd = fd.filter((row) => {
+                const v = row[acc];
+                if (def.filterType === "multi-select") {
+                    if (!Array.isArray(f) || f.length === 0) return true;
+                    return f.includes(v);
+                }
+                return v != null && v.toString().toLowerCase().includes(f.toLowerCase());
+            });
         });
-
-        return filteredData;
+        return fd;
     }, [data, searchTerm, columnFilters, columns]);
 
+    // 3. Sorting
     const sorted = useMemo(() => {
         if (!sortBy) return filtered;
         const dir = sortDir === "asc" ? 1 : -1;
         return [...filtered].sort((a, b) => {
-            let va = a[sortBy];
-            let vb = b[sortBy];
-
-            if (Array.isArray(va)) va = va.length;
-            if (Array.isArray(vb)) vb = vb.length;
-
-            if (typeof va === "string" && ["High", "Medium", "Low"].includes(va)) {
-                const priorityOrder = {High: 1, Medium: 2, Low: 3};
-                return (priorityOrder[va] - priorityOrder[vb]) * dir;
-            }
-
+            const va = a[sortBy], vb = b[sortBy];
             if (va == null && vb == null) return 0;
-            if (va == null) return -1 * dir;
-            if (vb == null) return 1 * dir;
-
+            if (va == null) return -dir;
+            if (vb == null) return dir;
             if (!isNaN(va) && !isNaN(vb)) {
                 return (parseFloat(va) - parseFloat(vb)) * dir;
             }
-
             return va.toString().localeCompare(vb.toString()) * dir;
         });
     }, [filtered, sortBy, sortDir]);
 
+    // 4. Pagination math
     const totalPages = Math.max(1, Math.ceil(sorted.length / itemsPerPage));
-    useEffect(() => setCurrentPage(1), [searchTerm, columnFilters, sortBy, sortDir]);
-
-    const paginated = useMemo(
-        () => sorted.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage),
-        [sorted, currentPage]
+    useEffect(() => setCurrentPage(1), [searchTerm, sortBy, sortDir, columnFilters]);
+    useEffect(() => {
+        if (currentPage > totalPages) setCurrentPage(totalPages);
+    }, [totalPages]);
+    const paginated = sorted.slice(
+        (currentPage - 1) * itemsPerPage,
+        currentPage * itemsPerPage
     );
 
     const canEdit = onEdit && editRoles.includes(userRole);
     const canDelete = onDelete && deleteRoles.includes(userRole);
+    const canView = typeof onView === "function";
 
-    const handlePrevious = () => setCurrentPage((p) => Math.max(1, p - 1));
-    const handleNext = () => setCurrentPage((p) => Math.min(totalPages, p + 1));
-
-    const handleSort = (accessor) => {
-        if (sortBy === accessor) {
-            setSortDir((d) => (d === "asc" ? "desc" : "asc"));
-        } else {
-            setSortBy(accessor);
+    // handlers
+    const handleSort = (acc) => {
+        if (sortBy === acc) setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+        else {
+            setSortBy(acc);
             setSortDir("asc");
         }
     };
-
     const downloadCSV = () => {
-        const headers = columns.map((c) => c.header);
+        const hdrs = columns.map((c) => c.header);
         const rowsCsv = sorted.map((row) =>
-            columns.map((c) => {
-                let val = row[c.accessor];
-                if (Array.isArray(val)) {
-                    return `"${val.map(v => JSON.stringify(v)).join(", ")}"`;
-                }
-                const str = val != null ? String(val) : "";
-                return `"${str.replace(/"/g, '""')}"`;
-            }).join(",")
+            columns
+                .map((c) => {
+                    const v = row[c.accessor] ?? "";
+                    return `"${String(v).replace(/"/g, '""')}"`;
+                })
+                .join(",")
         );
-        const csv = [headers.join(","), ...rowsCsv].join("\n");
+        const csv = [hdrs.join(","), ...rowsCsv].join("\n");
         const blob = new Blob([csv], {type: "text/csv"});
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
@@ -141,19 +131,25 @@ export default function AdvancedTable({
 
     return (
         <div className="py-4">
-            {title && (
-                <h3 className="text-2xl font-bold mb-4 text-gray-800">{title}</h3>
-            )}
+            {title && <h3 className="text-xl font-bold mb-4">{title}</h3>}
 
-            {/* Top controls */}
+            {/* Search / Reset / CSV */}
             <div className="flex justify-between mb-4">
-                <input
-                    type="text"
-                    placeholder="Search all..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="flex-1 mr-2 px-4 py-2 border rounded focus:ring-2 focus:ring-blue-400 focus:border-blue-400"
-                />
+                <div className="flex items-center space-x-2">
+                    <input
+                        type="text"
+                        placeholder="Search all..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="px-4 py-2 border rounded-md"
+                    />
+                    <button
+                        onClick={handleReset}
+                        className="px-3 py-1 bg-gray-300 rounded hover:bg-gray-400"
+                    >
+                        Reset
+                    </button>
+                </div>
                 <button
                     onClick={downloadCSV}
                     className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
@@ -167,93 +163,118 @@ export default function AdvancedTable({
                 <Table className="min-w-full bg-white">
                     {caption && <TableCaption>{caption}</TableCaption>}
 
-                    {/* Headers */}
+                    {/* Header Row */}
                     <TableHeader>
-                        <TableRow className="bg-gray-200 text-gray-700">
+                        <TableRow className="bg-gray-200">
                             {columns.map((col) => (
                                 <TableHead
                                     key={col.accessor}
+                                    className="px-4 py-2 cursor-pointer"
                                     onClick={() => handleSort(col.accessor)}
-                                    className="cursor-pointer"
                                 >
-                                    {col.header} {sortBy === col.accessor && (sortDir === "asc" ? "▲" : "▼")}
+                                    {col.header}
+                                    {sortBy === col.accessor && (sortDir === "asc" ? " ▲" : " ▼")}
                                 </TableHead>
                             ))}
+                            {canView && <TableHead>View</TableHead>}
                             {canEdit && <TableHead>Edit</TableHead>}
                             {canDelete && <TableHead>Delete</TableHead>}
                         </TableRow>
 
-                        {/* Filters */}
+                        {/* Filters Row */}
                         <TableRow>
                             {columns.map((col) => (
-                                <TableHead key={col.accessor}>
-                                    <input
-                                        type="text"
-                                        placeholder={`Filter ${col.header}`}
-                                        value={columnFilters[col.accessor] || ""}
-                                        onChange={(e) => handleColumnFilterChange(col.accessor, e.target.value)}
-                                        className="w-full text-xs border rounded p-1"
-                                    />
+                                <TableHead key={col.accessor} className="text-center">
+                                    {col.filterType === "multi-select" ? (
+                                        <MultiSelectFilter
+                                            options={col.options || []}
+                                            selectedValues={columnFilters[col.accessor] || []}
+                                            onChange={(sel) =>
+                                                setColumnFilters((p) => ({...p, [col.accessor]: sel}))
+                                            }
+                                        />
+                                    ) : (
+                                        <input
+                                            type="text"
+                                            placeholder={`Filter ${col.header}`}
+                                            value={columnFilters[col.accessor] || ""}
+                                            onChange={(e) =>
+                                                setColumnFilters((p) => ({
+                                                    ...p,
+                                                    [col.accessor]: e.target.value,
+                                                }))
+                                            }
+                                            className="w-full p-1 text-xs border rounded"
+                                        />
+                                    )}
                                 </TableHead>
                             ))}
-                            {canEdit && <TableHead></TableHead>}
-                            {canDelete && <TableHead></TableHead>}
+                            {canView && <TableHead/>}
+                            {canEdit && <TableHead/>}
+                            {canDelete && <TableHead/>}
                         </TableRow>
                     </TableHeader>
 
-                    {/* Body */}
+                    {/* Body Rows */}
                     <TableBody>
-                        {paginated.map((row, rowIdx) => {
-                            const originalIdx = (currentPage - 1) * itemsPerPage + rowIdx;
-                            const rowKey = row.id ?? `${rowIdx}-${JSON.stringify(row).slice(0, 20)}`;
-
+                        {paginated.map((row, idx) => {
+                            const key = row.id ?? `${idx}-${JSON.stringify(row).slice(0, 20)}`;
                             return (
                                 <TableRow
-                                    key={rowKey}
-                                    className="hover:bg-gray-100 cursor-pointer"
-                                    onClick={() => onView && onView(row)} // ✅ Add this for View Modal
+                                    key={key}
+                                    className="hover:bg-gray-50 cursor-pointer"
+                                    onClick={() => canView && onView(row)}  // row‐click opens view
                                 >
                                     {columns.map((col) => (
-                                        <TableCell key={col.accessor} className="px-4 py-2">
-                                            {Array.isArray(row[col.accessor]) ? (
-                                                <div className="flex flex-wrap gap-2">
-                                                    {row[col.accessor].map((item, tagIdx) =>
-                                                            typeof item === "object" ? (
-                                                                <div key={tagIdx}
-                                                                     className="p-2 border rounded bg-gray-50 text-xs">
-                                                                    <div><b>Subpart:</b> {item.project_subpart_name}</div>
-                                                                    <div><b>Deadline:</b> {item.dead_line}</div>
-                                                                    <div><b>Hours:</b> {item.hours_elapsed ?? 0}</div>
-                                                                    <div><b>Done:</b> {item.is_done ? "✅" : "❌"}</div>
-                                                                </div>
-                                                            ) : (
-                                                                <span key={tagIdx}
-                                                                      className="bg-blue-100 px-2 py-1 rounded-full text-xs">
-                                {item}
-                              </span>
-                                                            )
-                                                    )}
-                                                </div>
-                                            ) : col.render ? (
-                                                col.render(row, originalIdx)
-                                            ) : (
-                                                row[col.accessor] ?? "N/A"
-                                            )}
+                                        <TableCell key={col.accessor}>
+                                            {col.render ? col.render(row, idx) : row[col.accessor] ?? "N/A"}
                                         </TableCell>
                                     ))}
-                                    {canEdit && (
+
+                                    {/* View Button */}
+                                    {canView && (
                                         <TableCell className="text-center">
-                                            <Button size="sm" variant="outline"
-                                                    onClick={() => onEdit(row, originalIdx)}>
-                                                Edit
+                                            <Button
+                                                size="sm"
+                                                variant="outline"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    onView(row);
+                                                }}
+                                            >
+                                                <FaEye/>
                                             </Button>
                                         </TableCell>
                                     )}
+
+                                    {/* Edit Button */}
+                                    {canEdit && (
+                                        <TableCell className="text-center">
+                                            <Button
+                                                size="sm"
+                                                variant="outline"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    onEdit(row);
+                                                }}
+                                            >
+                                                <FaEdit/>
+                                            </Button>
+                                        </TableCell>
+                                    )}
+
+                                    {/* Delete Button */}
                                     {canDelete && (
                                         <TableCell className="text-center">
-                                            <Button size="sm" variant="destructive"
-                                                    onClick={() => onDelete(row, originalIdx)}>
-                                                Delete
+                                            <Button
+                                                size="sm"
+                                                variant="destructive"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    onDelete(row);
+                                                }}
+                                            >
+                                                <FaTrashAlt/>
                                             </Button>
                                         </TableCell>
                                     )}
@@ -262,11 +283,12 @@ export default function AdvancedTable({
                         })}
                     </TableBody>
 
+                    {/* Optional Footer */}
                     {footer?.totalLabels && (
                         <TableFooter>
                             <TableRow>
-                                {footer.totalLabels.map((label, idx) => (
-                                    <TableCell key={`footer-${idx}`}>{label.content}</TableCell>
+                                {footer.totalLabels.map((label, i) => (
+                                    <TableCell key={i}>{label.content}</TableCell>
                                 ))}
                             </TableRow>
                         </TableFooter>
@@ -274,15 +296,17 @@ export default function AdvancedTable({
                 </Table>
             </div>
 
-            {/* Pagination */}
+            {/* Pagination Controls */}
             <div className="flex justify-between items-center mt-4 px-4">
-                <Button variant="outline" onClick={handlePrevious} disabled={currentPage === 1}>
+                <Button variant="outline" onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                        disabled={currentPage === 1}>
                     Previous
                 </Button>
                 <span className="text-sm">
           Page {currentPage} of {totalPages}
         </span>
-                <Button variant="outline" onClick={handleNext} disabled={currentPage === totalPages}>
+                <Button variant="outline" onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                        disabled={currentPage === totalPages}>
                     Next
                 </Button>
             </div>
