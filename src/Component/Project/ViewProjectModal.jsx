@@ -1,19 +1,41 @@
-import React from "react";
+// src/Component/Workday/Work-Entry/ViewProjectModal.jsx
+import React, {useEffect, useState} from "react";
+import axios from "axios";
+import {API_URL} from "@/config.js";
 import {Dialog} from "@headlessui/react";
-import {FaClipboardList, FaUserFriends, FaPuzzlePiece} from "react-icons/fa"; // ✅ Importing react-icons
+import {FaClipboardList, FaUserFriends, FaPuzzlePiece} from "react-icons/fa";
 
 export default function ViewProjectModal({isOpen, onClose, project}) {
+    const [userMap, setUserMap] = useState({});
+
+    // 1️⃣ Load all users once and build id→full_name map
+    useEffect(() => {
+        axios
+            .get(`${API_URL}users/`)
+            .then((res) => {
+                const map = {};
+                res.data.forEach((u) => {
+                    map[u.id] = u.full_name;
+                });
+                setUserMap(map);
+            })
+            .catch((err) => {
+                console.error("Failed to load users for name lookup", err);
+            });
+    }, []);
+
     if (!project) return null;
 
     return (
         <Dialog open={isOpen} onClose={onClose} className="fixed z-50 inset-0 overflow-y-auto">
             <div className="flex items-center justify-center min-h-screen px-4 py-8">
                 <Dialog.Panel className="w-full max-w-5xl bg-white p-8 rounded-xl shadow-2xl overflow-y-auto">
+
                     <Dialog.Title className="flex items-center text-3xl font-bold mb-6 text-gray-800 gap-2">
                         <FaClipboardList className="text-blue-600"/> Project Details
                     </Dialog.Title>
 
-                    {/* Project Main Info */}
+                    {/* ─── Project Main Info ─────────────────────────────────────────────── */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
                         <div><b>Project Name:</b> {project.project_name || "-"}</div>
                         <div><b>Created By:</b> {project.created_by_name || "-"}</div>
@@ -25,7 +47,7 @@ export default function ViewProjectModal({isOpen, onClose, project}) {
                             Date:</b> {project.updated_at ? new Date(project.updated_at).toLocaleString() : "-"}</div>
                     </div>
 
-                    {/* Assigned Employees */}
+                    {/* ─── Assigned Employees ───────────────────────────────────────────── */}
                     <div className="mb-8">
                         <h3 className="flex items-center text-xl font-semibold mb-3 text-gray-700 gap-2">
                             <FaUserFriends className="text-green-600"/> Assigned Employees:
@@ -46,7 +68,7 @@ export default function ViewProjectModal({isOpen, onClose, project}) {
                         )}
                     </div>
 
-                    {/* Project Subparts */}
+                    {/* ─── Project Subparts ─────────────────────────────────────────────── */}
                     <div>
                         <h3 className="flex items-center text-xl font-semibold mb-3 text-gray-700 gap-2">
                             <FaPuzzlePiece className="text-purple-600"/> Project Subparts:
@@ -59,14 +81,19 @@ export default function ViewProjectModal({isOpen, onClose, project}) {
                                         className="border rounded-lg p-4 bg-gray-50 shadow hover:shadow-md transition-all"
                                     >
                                         <div className="font-semibold text-gray-700">{sub.project_subpart_name}</div>
-                                        <div className="text-sm text-gray-600 mt-1"><b>Assigned
-                                            ID:</b> {sub.assigned_id ?? "-"}</div>
-                                        <div className="text-sm text-gray-600"><b>Deadline:</b> {sub.dead_line ?? "-"}
+                                        <div className="text-sm text-gray-600 mt-1">
+                                            <b>Assigned To: </b>
+                                            {userMap[sub.assigned_id] ?? `#${sub.assigned_id}` ?? "-"}
                                         </div>
-                                        <div className="text-sm text-gray-600"><b>Is
-                                            Done:</b> {sub.is_done ? "✅ Done" : "❌ Pending"}</div>
-                                        <div className="text-sm text-gray-600"><b>Hours
-                                            Elapsed:</b> {sub.hours_elapsed ?? "0"}</div>
+                                        <div className="text-sm text-gray-600">
+                                            <b>Deadline:</b> {sub.dead_line ?? "-"}
+                                        </div>
+                                        <div className="text-sm text-gray-600">
+                                            <b>Is Done:</b> {sub.is_done ? "✅ Done" : "❌ Pending"}
+                                        </div>
+                                        <div className="text-sm text-gray-600">
+                                            <b>Hours Elapsed:</b> {sub.hours_elapsed ?? "0"}
+                                        </div>
                                     </div>
                                 ))}
                             </div>
@@ -75,7 +102,7 @@ export default function ViewProjectModal({isOpen, onClose, project}) {
                         )}
                     </div>
 
-                    {/* Close Button */}
+                    {/* ─── Close Button ─────────────────────────────────────────────────── */}
                     <div className="flex justify-end mt-8">
                         <button
                             onClick={onClose}
@@ -84,6 +111,7 @@ export default function ViewProjectModal({isOpen, onClose, project}) {
                             Close
                         </button>
                     </div>
+
                 </Dialog.Panel>
             </div>
         </Dialog>
