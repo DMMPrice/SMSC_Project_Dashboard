@@ -3,7 +3,6 @@ import axios from "axios";
 import {API_URL} from "@/config.js";
 import CustomDatePicker from "@/Component/Utils/CustomDatePicker.jsx";
 import CustomSelect from "@/Component/Utils/CustomSelect.jsx";
-import {Textarea} from "@/components/ui/textarea";
 import {toast} from "react-toastify";
 
 export default function WorkEntryForm({toggleModal, fetchEntries}) {
