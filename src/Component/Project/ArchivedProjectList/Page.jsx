@@ -134,7 +134,7 @@ export default function ArchivedProjectList() {
                         columns={columns}
                         data={projects}
                         userRole={userRole}
-                        editRoles={["Admin", "Super Admin"]}
+                        editRoles={["Admin", "Super Admin", "Manager"]}
                         onEdit={(row) => {
                             setSelectedProject(row);
                             setEditModalOpen(true);

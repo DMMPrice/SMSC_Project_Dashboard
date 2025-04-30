@@ -203,7 +203,7 @@ export default function ProjectListTable() {
                         columns={columns}
                         data={projects}
                         userRole={userRole}
-                        editRoles={["Admin", "Super Admin"]}
+                        editRoles={["Admin", "Super Admin","Manager"]}
                         deleteRoles={["Admin", "Super Admin"]}
                         onEdit={(row) => {
                             setSelectedProject(row);

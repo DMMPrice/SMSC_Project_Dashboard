@@ -7,6 +7,8 @@ import {FiRefreshCw} from "react-icons/fi";
 import {API_URL} from "@/config.js";
 import CommonTable from "@/Component/Utils/CommonTable.jsx";
 import AddAttendanceModal from "./AddAttendanceModal.jsx";
+import dayjs from "dayjs";
+import BasicDatePicker from "@/Component/Utils/DateTimePicker.jsx";
 
 export default function ManualAttendanceTable() {
     const [rows, setRows] = useState([]);
@@ -218,13 +220,80 @@ export default function ManualAttendanceTable() {
             {/* Edit Modal */}
             {editModalOpen && (
                 <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-                    {/* …same edit form as before… */}
+
                     <div className="bg-white p-6 rounded shadow-lg w-full max-w-md">
-                        {/* … */}
-                        <button onClick={handleSaveEdit}
-                                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
-                            Save
-                        </button>
+                        <h2 className="text-xl font-semibold mb-4">
+                            Edit Attendance
+                        </h2>
+
+                        <div className="space-y-4">
+                            {/* Employee ID (unchanged) */}
+                            <div>
+                                <label className="block text-sm">Employee ID</label>
+                                <input
+                                    type="text"
+                                    disabled
+                                    value={editRow.employee_id}
+                                    className="mt-1 block w-full border p-2 rounded bg-gray-100"
+                                />
+                            </div>
+
+                            {/* ← Replace this entire block:
+              <label>Date</label>
+              <input type="date" … />
+            with: */}
+                            <div>
+                                <BasicDatePicker
+                                    label="Date"
+                                    value={editRow.date_text ? dayjs(editRow.date_text) : null}
+                                    onChange={(newDate) => {
+                                        const iso = newDate ? newDate.format("YYYY-MM-DD") : "";
+                                        setEditRow((prev) => ({...prev, date_text: iso}));
+                                    }}
+                                />
+                            </div>
+
+                            {/* In Time / Out Time (unchanged) */}
+                            <div className="flex gap-4">
+                                <div className="flex-1">
+                                    <label className="block text-sm">In Time</label>
+                                    <input
+                                        type="time"
+                                        value={editRow.in_time}
+                                        onChange={(e) =>
+                                            setEditRow((p) => ({...p, in_time: e.target.value}))
+                                        }
+                                        className="mt-1 block w-full border p-2 rounded"
+                                    />
+                                </div>
+                                <div className="flex-1">
+                                    <label className="block text-sm">Out Time</label>
+                                    <input
+                                        type="time"
+                                        value={editRow.out_time}
+                                        onChange={(e) =>
+                                            setEditRow((p) => ({...p, out_time: e.target.value}))
+                                        }
+                                        className="mt-1 block w-full border p-2 rounded"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="mt-6 flex justify-end gap-4">
+                            <button
+                                onClick={() => setEditModalOpen(false)}
+                                className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleSaveEdit}
+                                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                            >
+                                Save
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}

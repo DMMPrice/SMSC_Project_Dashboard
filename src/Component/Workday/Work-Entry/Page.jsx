@@ -33,7 +33,10 @@ export default function IndividualWorkEntryTable() {
                 resp = await axios.get(`${API_URL}work-day/all`);
             } else {
                 resp = await axios.get(`${API_URL}work-day/filter`, {
-                    params: {user_id: userId}
+                    params: {
+                        user_id: userId,
+                        assigned_to: userId
+                    }
                 });
             }
             const rawEntries = resp.data.entries || [];
