@@ -27,6 +27,7 @@ export default function AttendanceToolbar({
                                               onAdd,
                                               onReload,
                                           }) {
+    const isPrivileged = PRIVILEGED.includes(userRole);
     const currentYear = new Date().getFullYear();
     const years = Array.from({length: 5}, (_, i) => currentYear - i);
 
@@ -39,99 +40,90 @@ export default function AttendanceToolbar({
         ).toFixed(2)
         : "0.00";
 
-    const sortedByDate = [...rows].sort(
+    const sorted = [...rows].sort(
         (a, b) => new Date(a.date_text) - new Date(b.date_text)
     );
-    const start = sortedByDate[0]?.date_text ?? null;
-    const end = sortedByDate[sortedByDate.length - 1]?.date_text ?? null;
-
+    const start = sorted[0]?.date_text ?? null;
+    const end = sorted[sorted.length - 1]?.date_text ?? null;
     const totalSpanDays = start && end ? dayjs(end).diff(dayjs(start), "day") + 1 : 0;
     const holidaysTaken = totalSpanDays - totalWorkingDays;
 
-    const isPrivileged = PRIVILEGED.includes(userRole);
-
     return (
         <div className="mb-6">
-            {/* ─── Filter Controls ───────────────────────── */}
+            {/* Filters */}
             <div className="grid grid-cols-1 md:grid-cols-8 gap-4 mb-4 items-end">
-                {/* Year */}
-                <div className="col-span-1">
+                <div>
                     <label className="block text-sm mb-1">Year</label>
                     <CustomSelect
                         options={years}
                         value={selectedYear}
-                        onChange={(val) => onYearChange(val != null ? +val : null)}
+                        onChange={(v) => onYearChange(v != null ? +v : null)}
                         placeholder="All Years"
-                        className="w-full"
                     />
                 </div>
 
-                {/* Employee (only for Admin/Super Admin/Attendance Team) */}
                 {isPrivileged && (
-                    <div className="col-span-1">
+                    <div>
                         <label className="block text-sm mb-1">Employee</label>
                         <CustomSelect
                             options={employees}
                             value={selectedEmployee}
-                            onChange={(val) => onEmployeeChange(val || null)}
+                            onChange={(v) => onEmployeeChange(v || null)}
                             placeholder="All Employees"
-                            className="w-full"
                         />
                     </div>
                 )}
 
-                {/* Start Date */}
-                <div className="col-span-1">
+                <div>
                     <BasicDatePicker
                         label="Start Date"
                         value={startDate ? dayjs(startDate) : null}
-                        onChange={(d) =>
-                            onStartDateChange(d ? d.format("YYYY-MM-DD") : null)
-                        }
+                        onChange={(d) => onStartDateChange(d ? d.format("YYYY-MM-DD") : null)}
                     />
                 </div>
 
-                {/* End Date */}
-                <div className="col-span-1">
+                <div>
                     <BasicDatePicker
                         label="End Date"
                         value={endDate ? dayjs(endDate) : null}
-                        onChange={(d) =>
-                            onEndDateChange(d ? d.format("YYYY-MM-DD") : null)
-                        }
+                        onChange={(d) => onEndDateChange(d ? d.format("YYYY-MM-DD") : null)}
                     />
                 </div>
 
-                {/* Apply / Clear / Reload / Add */}
                 <div className="flex gap-2 col-span-3">
                     <button
                         onClick={onApply}
-                        className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+                        disabled={loading}
+                        className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-50"
                     >
                         Apply
                     </button>
                     <button
                         onClick={onClear}
-                        className="bg-gray-300 px-4 py-2 rounded hover:bg-gray-400"
+                        disabled={loading}
+                        className="bg-gray-300 px-4 py-2 rounded hover:bg-gray-400 disabled:opacity-50"
                     >
                         Clear
                     </button>
                     <button
                         onClick={onReload}
-                        className="flex items-center gap-1 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition"
+                        disabled={loading}
+                        className="flex items-center gap-1 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 disabled:opacity-50"
                     >
-                        <FiRefreshCw size={18}/> Reload
+                        <FiRefreshCw size={18}/>
+                        Reload
                     </button>
                     <button
                         onClick={onAdd}
-                        className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition"
+                        disabled={loading}
+                        className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 disabled:opacity-50"
                     >
                         + Add Attendance
                     </button>
                 </div>
             </div>
 
-            {/* ─── Stats Cards / Loading Skeleton ───────────── */}
+            {/* Stats */}
             {loading ? (
                 <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
                     {Array(6)
@@ -144,8 +136,6 @@ export default function AttendanceToolbar({
                 <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
                     <InfoCard
                         header="Start Date"
-                        headerClassName="text-lg"
-                        headerColor="text-white"
                         value={start ? dayjs(start).format("DD MMM YYYY") : "-"}
                         icon={<LuCalendarDays/>}
                         bgColor="bg-yellow-400"
@@ -155,8 +145,6 @@ export default function AttendanceToolbar({
                     />
                     <InfoCard
                         header="Days Span"
-                        headerClassName="text-lg"
-                        headerColor="text-white"
                         value={totalSpanDays}
                         icon={<LuCalendarDays/>}
                         bgColor="bg-green-400"
@@ -166,8 +154,6 @@ export default function AttendanceToolbar({
                     />
                     <InfoCard
                         header="Days Worked"
-                        headerClassName="text-lg"
-                        headerColor="text-white"
                         value={totalWorkingDays}
                         icon={<LuCalendarDays/>}
                         bgColor="bg-blue-400"
@@ -177,8 +163,6 @@ export default function AttendanceToolbar({
                     />
                     <InfoCard
                         header="Holidays Taken"
-                        headerClassName="text-lg"
-                        headerColor="text-white"
                         value={holidaysTaken}
                         icon={<LuCalendarDays/>}
                         bgColor="bg-red-400"
@@ -188,8 +172,6 @@ export default function AttendanceToolbar({
                     />
                     <InfoCard
                         header="Avg Hours"
-                        headerClassName="text-lg"
-                        headerColor="text-white"
                         value={avgWorkingHours}
                         icon={<LuCalendarDays/>}
                         bgColor="bg-green-400"
@@ -199,8 +181,6 @@ export default function AttendanceToolbar({
                     />
                     <InfoCard
                         header="End Date"
-                        headerClassName="text-lg"
-                        headerColor="text-white"
                         value={end ? dayjs(end).format("DD MMM YYYY") : "-"}
                         icon={<LuCalendarDays/>}
                         bgColor="bg-yellow-400"

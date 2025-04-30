@@ -1,5 +1,5 @@
 // src/Component/Attendance/ManualAttendanceTable/ManualAttendanceTable.jsx
-import React, {useState, useEffect} from "react";
+import React, {useState, useEffect, useCallback} from "react";
 import axios from "axios";
 import {format} from "date-fns";
 import {toast} from "react-toastify";
@@ -11,15 +11,13 @@ import AttendanceToolbar from "@/Component/Attendance/AttendanceToolbar.jsx";
 import {API_URL} from "@/config.js";
 
 export default function ManualAttendanceTable() {
-    // 1️⃣ store both rows and the raw users list
     const [rows, setRows] = useState([]);
     const [filteredRows, setFilteredRows] = useState([]);
     const [loading, setLoading] = useState(true);
 
-    const [users, setUsers] = useState([]);               // ← new
+    const [users, setUsers] = useState([]);
     const [employeesList, setEmployeesList] = useState([]);
 
-    // modals & filters unchanged...
     const [addModalOpen, setAddModalOpen] = useState(false);
     const [editModalOpen, setEditModalOpen] = useState(false);
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);
@@ -31,81 +29,99 @@ export default function ManualAttendanceTable() {
     const [startDate, setStartDate] = useState(null);
     const [endDate, setEndDate] = useState(null);
 
-    // ▶ load users once, then load attendance
+    const userRole = JSON.parse(localStorage.getItem("userData") || "{}").role;
+
+    // 1. Load users once, then fetch attendance
     useEffect(() => {
-        (async () => {
+        ;(async () => {
             let userList = [];
             try {
                 const res = await axios.get(`${API_URL}users/`);
                 userList = res.data;
                 setUsers(userList);
-
                 setEmployeesList(
                     userList.map(u => ({value: u.employee_id, label: u.full_name}))
                 );
-            } catch {
-                toast.error("Could not load employees");
+            } catch (err) {
+                console.error("Failed to load users:", err);
+                toast.error("Could not load employee list");
             }
             await fetchRows(userList);
         })();
     }, []);
 
-    // ▶ fetchRows now accepts an optional userList for lookup
-    const fetchRows = async (userList = users) => {
-        setLoading(true);
-        const {role, employee_id} = JSON.parse(
-            localStorage.getItem("userData") || "{}"
-        );
-        const endpoint = ["Admin", "Super Admin", "Attendance Team"].includes(role)
-            ? `${API_URL}attendance/all`
-            : `${API_URL}attendance/employee/${employee_id}`;
+    // 2. Fetch attendance rows
+    const fetchRows = useCallback(
+        async (userList = users) => {
+            setLoading(true);
+            const {role, employee_id} = JSON.parse(
+                localStorage.getItem("userData") || "{}"
+            );
+            const endpoint = ["Admin", "Super Admin", "Attendance Team"].includes(role)
+                ? `${API_URL}attendance/all`
+                : `${API_URL}attendance/employee/${employee_id}`;
 
-        try {
-            const {data} = await axios.get(endpoint);
+            try {
+                const {data} = await axios.get(endpoint);
 
-            // build lookup map: employee_id → full_name
-            const nameMap = userList.reduce((m, u) => {
-                m[u.employee_id] = u.full_name;
-                return m;
-            }, {});
+                // build lookup: employee_id → full_name
+                const nameMap = userList.reduce((m, u) => {
+                    m[u.employee_id] = u.full_name;
+                    return m;
+                }, {});
 
-            const prepared = data.map(r => {
-                const d = new Date(r.date);
-                const iso = format(d, "yyyy-MM-dd");
-                const hours =
-                    r.in_time && r.out_time
-                        ? (
-                            ((+r.out_time.split(":")[0] * 60 + +r.out_time.split(":")[1]) -
-                                (+r.in_time.split(":")[0] * 60 + +r.in_time.split(":")[1])) /
-                            60
-                        ).toFixed(2)
-                        : "";
+                const prepared = data.map(r => {
+                    const d = new Date(r.date);
+                    const iso = format(d, "yyyy-MM-dd");
+                    const hours =
+                        r.in_time && r.out_time
+                            ? (
+                                ((+r.out_time.split(":")[0] * 60 +
+                                        +r.out_time.split(":")[1]) -
+                                    (+r.in_time.split(":")[0] * 60 +
+                                        +r.in_time.split(":")[1])) /
+                                60
+                            ).toFixed(2)
+                            : "";
 
-                return {
-                    ...r,
-                    date_text: iso,
-                    title: `${r.employee_id}-${iso}`,
-                    in_time: r.in_time,
-                    out_time: r.out_time,
-                    working_hours: hours,
-                    // ← use full name lookup here
-                    name: nameMap[r.employee_id] || r.employee_id,
-                };
-            });
-            setRows(prepared);
-            setFilteredRows(prepared);
-        } catch {
-            toast.error("Could not load attendance");
-        } finally {
-            setLoading(false);
-        }
-    };
+                    return {
+                        ...r,
+                        date_text: iso,
+                        title: `${r.employee_id}-${iso}`,
+                        in_time: r.in_time,
+                        out_time: r.out_time,
+                        working_hours: hours,
+                        name: nameMap[r.employee_id] || r.employee_id,
+                    };
+                });
 
-    // ▶ filters, modals, handlers unchanged...
+                // sort newest first
+                prepared.sort(
+                    (a, b) => new Date(b.date_text) - new Date(a.date_text)
+                );
+
+                setRows(prepared);
+                setFilteredRows(prepared);
+
+                // 🚀 show success toast
+                toast.success("Attendance loaded");
+            } catch (err) {
+                console.error("Failed to load attendance:", err);
+                toast.error("Could not load attendance");
+            } finally {
+                setLoading(false);
+            }
+        },
+        [users]
+    );
+
+    // 3. Filtering (always keep descending sort)
     const applyFilters = () => {
         let fr = [...rows];
         if (selectedYear) {
-            fr = fr.filter(r => new Date(r.date_text).getFullYear() === selectedYear);
+            fr = fr.filter(
+                r => new Date(r.date_text).getFullYear() === selectedYear
+            );
         }
         if (selectedEmployee) {
             fr = fr.filter(r => r.employee_id === selectedEmployee);
@@ -116,6 +132,7 @@ export default function ManualAttendanceTable() {
         if (endDate) {
             fr = fr.filter(r => r.date_text <= endDate);
         }
+        fr.sort((a, b) => new Date(b.date_text) - new Date(a.date_text));
         setFilteredRows(fr);
     };
 
@@ -127,6 +144,7 @@ export default function ManualAttendanceTable() {
         setFilteredRows(rows);
     };
 
+    // 4. Modals
     const openEditModal = row => {
         setEditRow(row);
         setEditModalOpen(true);
@@ -144,10 +162,11 @@ export default function ManualAttendanceTable() {
                 in_time: editRow.in_time,
                 out_time: editRow.out_time,
             });
-            toast.success("Updated");
+            toast.success("Attendance updated");
             setEditModalOpen(false);
             await fetchRows();
-        } catch {
+        } catch (err) {
+            console.error("Update failed:", err);
             toast.error("Update failed");
         }
     };
@@ -155,15 +174,16 @@ export default function ManualAttendanceTable() {
     const handleConfirmDelete = async () => {
         try {
             await axios.delete(`${API_URL}attendance/delete/${deleteRow.id}`);
-            toast.success("Deleted");
+            toast.success("Attendance deleted");
             setDeleteModalOpen(false);
             await fetchRows();
-        } catch {
+        } catch (err) {
+            console.error("Delete failed:", err);
             toast.error("Delete failed");
         }
     };
 
-    // ▶ update column header to “Employee Name”
+    // 5. Columns
     const columns = [
         {accessor: "title", header: "Title"},
         {accessor: "date_text", header: "Date"},
@@ -173,10 +193,8 @@ export default function ManualAttendanceTable() {
         {accessor: "working_hours", header: "Work Hours"},
     ];
 
-    const userRole = JSON.parse(localStorage.getItem("userData") || "{}").role;
-
     return (
-        <div className="relative p-6">
+        <div className="relative p-4 md:p-6">
             <AttendanceToolbar
                 userRole={userRole}
                 rows={filteredRows}
@@ -193,7 +211,7 @@ export default function ManualAttendanceTable() {
                 onApply={applyFilters}
                 onClear={clearFilters}
                 onAdd={() => setAddModalOpen(true)}
-                onReload={fetchRows}
+                onReload={() => fetchRows(users)}
             />
 
             <CommonTable
@@ -218,7 +236,7 @@ export default function ManualAttendanceTable() {
                 onClose={() => setAddModalOpen(false)}
                 onAdded={async () => {
                     setAddModalOpen(false);
-                    await fetchRows();
+                    await fetchRows(users);
                 }}
             />
             <EditAttendanceModal
