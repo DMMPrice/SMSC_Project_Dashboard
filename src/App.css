@@ -1,14 +1,37 @@
 @media (max-width: 768px) {
-  .landing-container {
-    flex-direction: column;
-  }
+    .landing-container {
+        flex-direction: column;
+    }
 
-  .login-section,
-  .carousel-section {
-    width: 100%;
-  }
+    .login-section,
+    .carousel-section {
+        width: 100%;
+    }
 
-  .carousel-section {
-    height: 300px;
-  }
+    .carousel-section {
+        height: 300px;
+    }
+}
+
+/* in App.css or index.css */
+body {
+    position: relative;
+    margin: 0;
+    padding: 0;
+    /* no background here any more */
+}
+
+/* this creates a fixed, full-screen layer behind everything else */
+body::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url("/vite.svg") no-repeat center center;
+    background-size: cover;
+    opacity: 0.05; /* tweak from 0 (invisible) up to ~0.3–0.5 as you like */
+    z-index: -2; /* push it behind all other elements */
+    pointer-events: none; /* so clicks go straight through */
 }

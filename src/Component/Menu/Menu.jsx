@@ -1,6 +1,7 @@
+// src/Component/Menu/Menu.jsx
 import React, {useState, useEffect} from "react";
 import {useNavigate} from "react-router-dom";
-import menuItems from "@/Component/Menu/menuConfig.jsx"
+import menuItems from "@/Component/Menu/menuConfig.jsx";
 
 const Menu = () => {
     const [role, setRole] = useState("Employee");
@@ -24,7 +25,15 @@ const Menu = () => {
                     <div
                         key={item.key}
                         onClick={() => navigate(`/menu/${item.key}`)}
-                        className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md p-6 rounded-lg shadow hover:shadow-lg cursor-pointer text-center transition-all flex flex-col items-center gap-3"
+                        className={`
+              ${item.bgClass} 
+              dark:bg-gray-800/80 backdrop-blur-md 
+              p-6 rounded-lg 
+              shadow hover:shadow-lg 
+              cursor-pointer text-center 
+              transition-all 
+              flex flex-col items-center gap-3
+            `}
                     >
                         {item.icon}
                         <div className="text-lg font-medium text-gray-800 dark:text-white">

@@ -4,15 +4,16 @@ import {FiRefreshCw} from "react-icons/fi";
 import {LuCalendarDays} from "react-icons/lu";
 import InfoCard from "@/Component/Utils/InfoCard.jsx";
 import BasicDatePicker from "@/Component/Utils/DateTimePicker.jsx";
+import CustomSelect from "@/Component/Utils/CustomSelect.jsx";
 import dayjs from "dayjs";
 
 const PRIVILEGED = ["Admin", "Super Admin", "Attendance Team"];
 
 export default function AttendanceToolbar({
                                               userRole,
-                                              rows = [],               // ← already filtered by parent
+                                              rows = [],
                                               loading = false,
-                                              employees = [],          // [{ value, label }]
+                                              employees = [],
                                               selectedYear,
                                               onYearChange,
                                               selectedEmployee,
@@ -26,11 +27,10 @@ export default function AttendanceToolbar({
                                               onAdd,
                                               onReload,
                                           }) {
-    // Year options (last 5 years)
     const currentYear = new Date().getFullYear();
     const years = Array.from({length: 5}, (_, i) => currentYear - i);
 
-    // Compute stats from passed-in rows
+    // Stats
     const totalWorkingDays = rows.length;
     const avgWorkingHours = rows.length
         ? (
@@ -45,48 +45,38 @@ export default function AttendanceToolbar({
     const start = sortedByDate[0]?.date_text ?? null;
     const end = sortedByDate[sortedByDate.length - 1]?.date_text ?? null;
 
-    const totalSpanDays = start && end
-        ? dayjs(end).diff(dayjs(start), "day") + 1
-        : 0;
+    const totalSpanDays = start && end ? dayjs(end).diff(dayjs(start), "day") + 1 : 0;
     const holidaysTaken = totalSpanDays - totalWorkingDays;
 
     const isPrivileged = PRIVILEGED.includes(userRole);
 
     return (
         <div className="mb-6">
-            {/* ─── Filter Controls ───────────── */}
+            {/* ─── Filter Controls ───────────────────────── */}
             <div className="grid grid-cols-1 md:grid-cols-8 gap-4 mb-4 items-end">
                 {/* Year */}
                 <div className="col-span-1">
                     <label className="block text-sm mb-1">Year</label>
-                    <select
-                        value={selectedYear || ""}
-                        onChange={e => onYearChange(e.target.value ? +e.target.value : null)}
-                        className="w-full border rounded p-2"
-                    >
-                        <option value="">All</option>
-                        {years.map(y => (
-                            <option key={y} value={y}>{y}</option>
-                        ))}
-                    </select>
+                    <CustomSelect
+                        options={years}
+                        value={selectedYear}
+                        onChange={(val) => onYearChange(val != null ? +val : null)}
+                        placeholder="All Years"
+                        className="w-full"
+                    />
                 </div>
 
-                {/* Employee (only if privileged) */}
+                {/* Employee (only for Admin/Super Admin/Attendance Team) */}
                 {isPrivileged && (
                     <div className="col-span-1">
                         <label className="block text-sm mb-1">Employee</label>
-                        <select
-                            value={selectedEmployee || ""}
-                            onChange={e => onEmployeeChange(e.target.value || null)}
-                            className="w-full border rounded p-2"
-                        >
-                            <option value="">All</option>
-                            {employees.map(emp => (
-                                <option key={emp.value} value={emp.value}>
-                                    {emp.label}
-                                </option>
-                            ))}
-                        </select>
+                        <CustomSelect
+                            options={employees}
+                            value={selectedEmployee}
+                            onChange={(val) => onEmployeeChange(val || null)}
+                            placeholder="All Employees"
+                            className="w-full"
+                        />
                     </div>
                 )}
 
@@ -95,7 +85,9 @@ export default function AttendanceToolbar({
                     <BasicDatePicker
                         label="Start Date"
                         value={startDate ? dayjs(startDate) : null}
-                        onChange={d => onStartDateChange(d ? d.format("YYYY-MM-DD") : null)}
+                        onChange={(d) =>
+                            onStartDateChange(d ? d.format("YYYY-MM-DD") : null)
+                        }
                     />
                 </div>
 
@@ -104,7 +96,9 @@ export default function AttendanceToolbar({
                     <BasicDatePicker
                         label="End Date"
                         value={endDate ? dayjs(endDate) : null}
-                        onChange={d => onEndDateChange(d ? d.format("YYYY-MM-DD") : null)}
+                        onChange={(d) =>
+                            onEndDateChange(d ? d.format("YYYY-MM-DD") : null)
+                        }
                     />
                 </div>
 
@@ -137,12 +131,14 @@ export default function AttendanceToolbar({
                 </div>
             </div>
 
-            {/* ─── Stats Cards / Skeleton ───────── */}
+            {/* ─── Stats Cards / Loading Skeleton ───────────── */}
             {loading ? (
                 <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
-                    {Array(6).fill().map((_, i) => (
-                        <div key={i} className="h-32 rounded-xl bg-gray-200 animate-pulse"/>
-                    ))}
+                    {Array(6)
+                        .fill()
+                        .map((_, i) => (
+                            <div key={i} className="h-32 rounded-xl bg-gray-200 animate-pulse"/>
+                        ))}
                 </div>
             ) : (
                 <div className="grid grid-cols-2 md:grid-cols-6 gap-4">

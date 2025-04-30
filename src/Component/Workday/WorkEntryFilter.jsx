@@ -1,6 +1,7 @@
 // src/Component/Workday/Work-Entry/WorkEntryFilter.jsx
 import React from "react";
 import CustomDatePicker from "@/Component/Utils/CustomDatePicker.jsx";
+import CustomSelect from "@/Component/Utils/CustomSelect.jsx";
 import {Button} from "@/components/ui/button";
 import InfoCard from "@/Component/Utils/InfoCard.jsx";
 
@@ -9,7 +10,7 @@ const NAME_FILTER_ROLES = ["Super Admin", "Manager"];
 export default function WorkEntryFilter({
                                             userRole,
                                             stats = [],
-                                            employees = [],
+                                            employees = [],            // [{ value, label }]
                                             selectedEmployee,
                                             onEmployeeChange,
                                             searchDate,
@@ -22,7 +23,7 @@ export default function WorkEntryFilter({
 
     return (
         <div className="mb-6 w-full">
-            {/* InfoCards */}
+            {/* ─── Info Cards ──────────────────────────────── */}
             {stats.length > 0 && (
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
                     {stats.map((card, idx) => (
@@ -42,9 +43,9 @@ export default function WorkEntryFilter({
                 </div>
             )}
 
-            {/* Filters */}
+            {/* ─── Filter Controls ─────────────────────────── */}
             <div className="flex flex-wrap md:flex-nowrap items-end gap-4">
-                {/* Date */}
+                {/* Date Picker */}
                 <CustomDatePicker
                     label="Search by Date"
                     selected={searchDate}
@@ -52,24 +53,18 @@ export default function WorkEntryFilter({
                     className="w-full md:w-52"
                 />
 
-                {/* Name (super admin & manager only) */}
+                {/* Name dropdown for privileged roles */}
                 {showNameFilter && (
-                    <select
-                        value={selectedEmployee || ""}
-                        onChange={(e) =>
-                            onEmployeeChange(e.target.value ? +e.target.value : null)
-                        }
-                        className="w-full md:w-52 border rounded p-2"
-                    >
-                        <option value="">All Employees</option>
-                        {employees.map((emp) => (
-                            <option key={emp.value} value={emp.value}>
-                                {emp.label}
-                            </option>
-                        ))}
-                    </select>
+                    <CustomSelect
+                        options={employees}
+                        value={selectedEmployee}
+                        onChange={(val) => onEmployeeChange(val || null)}
+                        placeholder="All Employees"
+                        className="w-full md:w-52"
+                    />
                 )}
 
+                {/* Action Buttons */}
                 <Button
                     onClick={onApply}
                     className="w-full md:w-auto bg-blue-600 text-white hover:bg-blue-700"
